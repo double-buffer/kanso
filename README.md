@@ -1,1 +1,1 @@
-# kanso
+# Kanso OS
