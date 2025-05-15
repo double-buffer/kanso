@@ -2,7 +2,7 @@
 set -xue
 
 # QEMU file path
-QEMU=qemu-system-riscv32
+QEMU=qemu-system-riscv64
 
 # Start QEMU
-$QEMU -machine virt -bios default -nographic -serial mon:stdio --no-reboot
+$QEMU -machine virt -kernel build/riscv64/bin/kernel.elf -serial mon:stdio -nographic

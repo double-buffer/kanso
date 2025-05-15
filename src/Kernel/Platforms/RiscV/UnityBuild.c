@@ -301,7 +301,7 @@ void KernelMain()
     // TODO: Can we move this initialisation to the assembly code?
     memset(__bss, 0, (size_t) __bss_end - (size_t) __bss);
 
-    KernelConsolePrint("Hello Kernel from C!\n");
+    KernelConsolePrint("Kanso OS 1.0-DEV1\n");
 
     CpuSetSupervisorTrapHandler(KernelSupervisorTrapHandler);
     SbiSetTimer(CpuReadTime() + 10000000);

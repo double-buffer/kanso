@@ -17,4 +17,7 @@ QEMU=qemu-system-riscv64
 
 # Start QEMU
 #$QEMU -machine virt -bios hello.elf -serial mon:stdio -nographic
-$QEMU -machine virt -kernel hello-kernel.elf -serial mon:stdio -nographic
+#$QEMU -machine virt -kernel hello-kernel.elf -serial mon:stdio -nographic
+
+llvm-objdump -D ../build/riscv64/bin/kernel.elf
+#llvm-objdump -D hello-kernel.elf
