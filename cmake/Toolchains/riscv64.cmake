@@ -13,7 +13,8 @@ execute_process(
 # 3) Now find clang-20 (falling back to clang)
 find_program(_CLANG
   NAMES clang-20 clang
-  HINTS "${BREW_LLVM_PREFIX}/bin"
+  HINTS "${BREW_LLVM_PREFIX}/bin" 
+        "C:\\Program Files\\LLVM\\bin"
   NO_CMAKE_SYSTEM_PATH        # ignore /usr/bin
 )
 
@@ -24,7 +25,7 @@ endif()
 message("CLANG: ${_CLANG}")
 
 set(CMAKE_C_COMPILER "${_CLANG}")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wpedantic --target=riscv64-unknown-elf -fno-stack-protector -nostdlib -ffreestanding -mcmodel=medany")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O1 -Wall -Wextra -Wpedantic -Wno-language-extension-token -fansi-escape-codes -fcolor-diagnostics --target=riscv64-unknown-elf -fno-stack-protector -nostdlib -ffreestanding -mcmodel=medany")
 
 set(CMAKE_ASM_COMPILER "${_CLANG}")
 set(CMAKE_ASM_FLAGS "--target=riscv64-unknown-elf")

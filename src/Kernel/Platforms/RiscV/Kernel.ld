@@ -29,9 +29,9 @@ SECTIONS
 
     .bss :
     {
-        __bss = .;
+        __BSS = .;
         *(.bss .sbss);
-        __bss_end = .;
+        __BSS_END = .;
     } > kernel_space
 
     . = ALIGN(8);
