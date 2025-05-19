@@ -1,5 +1,6 @@
 #include "Memory.c"
+#include "String.c"
 
 #ifdef BUILD_TESTS
-#include "TestHost.c"
+#include "Test.c"
 #endif

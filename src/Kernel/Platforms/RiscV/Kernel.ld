@@ -2,7 +2,7 @@ ENTRY(boot)
 
 MEMORY
 {
-    kernel_space (rwx) : ORIGIN = 0x80200000, LENGTH = 2 * 1024 * 1024
+    kernel_space (rwx) : ORIGIN = 0x80200000, LENGTH = 64 * 1024 * 1024
 }
 
 SECTIONS 
@@ -17,17 +17,25 @@ SECTIONS
     {
     }
 
-    .data : 
+    .data : ALIGN(8)
     {
         *(.data);
     } > kernel_space
 
-    .rodata :
+    .rodata : ALIGN(8) 
     {
         *(.rodata);
     } > kernel_space
 
-    .bss :
+    .init_array ALIGN(8) :
+    {
+        __INIT_ARRAY_START = .;
+        KEEP(*(SORT_BY_INIT_PRIORITY(.init_array.*)))
+        KEEP(*(.init_array))
+        __INIT_ARRAY_END = .;
+    } > kernel_space
+
+    .bss : ALIGN(8) 
     {
         __BSS = .;
         *(.bss .sbss);

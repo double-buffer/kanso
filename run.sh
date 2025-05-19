@@ -1,8 +1,13 @@
 #!/bin/bash
-set -xue
 
 # QEMU file path
 QEMU=qemu-system-riscv64
 
+if [ "$1" = "test" ]; then
+    KERNEL="build/riscv64/bin/kernel-test.elf"
+else
+    KERNEL="build/riscv64/bin/kernel.elf"
+fi
+
 # Start QEMU
-$QEMU -machine virt -kernel build/riscv64/bin/kernel.elf -serial mon:stdio -nographic
+$QEMU -machine virt -kernel $KERNEL -serial stdio -monitor none  -nographic -no-reboot
