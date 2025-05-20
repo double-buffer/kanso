@@ -44,5 +44,5 @@ SECTIONS
 
     . = ALIGN(8);
     . += 128 * 1024; /* 128KB */
-    _STACK_PTR = .;
+    __STACK_PTR = .;
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Types.h"
+#include "String.h"
 
 #define MAX_TESTS 1024
 
@@ -21,7 +22,6 @@ extern char globalTestLastErrorMessage[2048];
 
 void RegisterTest(const char* category, const char* name, TestFunction testFunction);
 
-// TODO: The constructor stuff is really ugly
 #define Test(category, name) \
     static void test_##category##_##name(); \
     \
@@ -34,25 +34,29 @@ void RegisterTest(const char* category, const char* name, TestFunction testFunct
     static void test_##category##_##name() \
 
 
-#define TestAssert(expr)                                \
+#define TestAssertCore(expr, expected, actual, operator)                                \
     do {                                            \
         if (!(expr)) {                              \
             TestEntry *t = &globalTests[globalCurrentTestIndex]; \
             t->HasError = true; \
             uint32_t messageLength; \
-            StringFormat(globalTestLastErrorMessage, &messageLength, "    ? %s.%s: `%s` failed\n", t->Category, t->Name, #expr);                  \
+            StringFormat(globalTestLastErrorMessage, &messageLength, "%s\n  Expected: %s\n    Actual: %d %s %d", __FILE__, #expr, expected, operator, actual);                  \
             return;                                 \
         }                                           \
     } while (false)
 
+#define TestAssertEquals(expected, actual) TestAssertCore((expected) == (actual), expected, actual, "==")
+#define TestAssertNotEquals(expected, actual) TestAssertCore((expected) != (actual), expected, actual, "!=")
+
 typedef enum
 {
-    TestHostRunState_Start,
-    TestHostRunState_OK,
-    TestHostRunState_Error,
-    TestHostRunState_Separator
-} TestHostRunState;
+    TestRunState_Start,
+    TestRunState_OK,
+    TestRunState_Passed,
+    TestRunState_Failed,
+    TestRunState_Separator,
+} TestRunState;
 
-typedef void (*TestLogHandler)(const TestEntry* test, TestHostRunState state, const char* message, ...);
+typedef void (*TestLogHandler)(TestRunState state, const char* message, ...);
 
 void TestRun(TestLogHandler handler);

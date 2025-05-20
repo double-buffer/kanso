@@ -1,5 +1,6 @@
 set(CMAKE_SYSTEM_NAME Generic)
 set(CMAKE_SYSTEM_PROCESSOR riscv64)
+set(COMPILE_TARGET riscv64-unknown-elf)
 
 execute_process(
   COMMAND brew --prefix llvm
@@ -25,10 +26,11 @@ endif()
 message("CLANG: ${_CLANG}")
 
 set(CMAKE_C_COMPILER "${_CLANG}")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O1 -Wall -Wextra -Wpedantic -Wno-language-extension-token -fansi-escape-codes -fcolor-diagnostics --target=riscv64-unknown-elf -fno-stack-protector -nostdlib -ffreestanding -mcmodel=medany")
+
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wpedantic -Wno-language-extension-token -fansi-escape-codes -fcolor-diagnostics --target=${COMPILE_TARGET} -fno-stack-protector -nostdlib -ffreestanding -mcmodel=medany")
 
 set(CMAKE_ASM_COMPILER "${_CLANG}")
-set(CMAKE_ASM_FLAGS "--target=riscv64-unknown-elf")
+set(CMAKE_ASM_FLAGS "--target=${COMPILE_TARGET} -Wno-unused-command-line-argument")
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 

@@ -1,9 +1,9 @@
 #include "Test.h"
 
 TestEntry globalTests[MAX_TESTS];
-uint32_t  globalTestCount = 0;
-uint32_t  globalCurrentTestIndex = 0;
-char      globalTestLastErrorMessage[2048] = {0};
+uint32_t globalTestCount = 0;
+uint32_t globalCurrentTestIndex = 0;
+char globalTestLastErrorMessage[2048] = {};
 
 void RegisterTest(const char* category, const char* name, TestFunction testFunction)
 {
@@ -20,27 +20,46 @@ void RegisterTest(const char* category, const char* name, TestFunction testFunct
 
 void TestRun(TestLogHandler handler)
 {
-    handler(nullptr, TestHostRunState_Separator, "Running %d %s.", globalTestCount, globalTestCount == 1 ? "test" : "tests");
+    uint32_t failedCounter = 0;
+
+    handler(TestRunState_Separator, "Running %d %s.", globalTestCount, globalTestCount == 1 ? "test" : "tests");
 
     for (uint32_t i = 0; i < globalTestCount; i++)
     {
         auto test = &globalTests[i];
         globalCurrentTestIndex = i;
 
-        handler(test, TestHostRunState_Start, "");
+        handler(TestRunState_Start, "%s.%s", test->Category, test->Name);
 
         test->TestFunction();
 
         if (test->HasError)
         {
-            handler(test, TestHostRunState_Error, globalTestLastErrorMessage);
+            handler(TestRunState_Failed, globalTestLastErrorMessage);
+            failedCounter++;
         }
         else
         {
-            handler(test, TestHostRunState_OK, "(xxxxns)");
+            handler(TestRunState_OK, "%s.%s", test->Category, test->Name);
         }
     }
+    
+    handler(TestRunState_Separator, "%d %s ran.", globalTestCount, globalTestCount == 1 ? "test" : "tests");
+    handler(TestRunState_Passed, "%d %s.", globalTestCount - failedCounter, (globalTestCount - failedCounter) == 1 ? "test" : "tests");
 
-    // TODO: Summary
+    if (failedCounter > 0)
+    {
+        handler(TestRunState_Failed, "%d %s, listed below:", failedCounter, failedCounter == 1 ? "test" : "tests");
+
+        for (uint32_t i = 0; i < globalTestCount; i++)
+        {
+            auto test = &globalTests[i];
+
+            if (test->HasError)
+            {
+                handler(TestRunState_Failed, "%s.%s", test->Category, test->Name);
+            }
+        }
+    }
 }
 

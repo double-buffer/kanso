@@ -1,16 +1,17 @@
 #include "String.h"
+#include "Memory.h"
 
 void StringFormat(char* output, uint32_t* lengthOutput, const char* message, ...)
 {
-    __builtin_va_list vargs;
-    __builtin_va_start(vargs, message);
+    va_list vargs;
+    va_start(vargs, message);
     
     StringFormatVA(output, lengthOutput, message, vargs);
 
-    __builtin_va_end(vargs);
+    va_end(vargs);
 }
 
-void StringFormatVA(char* output, uint32_t* lengthOutput, const char* message, __builtin_va_list vargs)
+void StringFormatVA(char* output, uint32_t* lengthOutput, const char* message, va_list vargs)
 {
     uint32_t length = 0;
 
@@ -36,7 +37,7 @@ void StringFormatVA(char* output, uint32_t* lengthOutput, const char* message, _
 
                 case 's':
                 {
-                    const char *stringArgument = __builtin_va_arg(vargs, const char *);
+                    const char *stringArgument = va_arg(vargs, const char *);
                     
                     while (*stringArgument) 
                     {
@@ -48,7 +49,7 @@ void StringFormatVA(char* output, uint32_t* lengthOutput, const char* message, _
 
                 case 'd':
                 {
-                    int32_t decimalArgument = __builtin_va_arg(vargs, int32_t);
+                    int32_t decimalArgument = va_arg(vargs, int32_t);
 
                     uint32_t magnitude = decimalArgument;
 
@@ -77,7 +78,7 @@ void StringFormatVA(char* output, uint32_t* lengthOutput, const char* message, _
 
                 case 'x':
                 {
-                    uint64_t hexaArgument = __builtin_va_arg(vargs, uint64_t);
+                    uint64_t hexaArgument = va_arg(vargs, uint64_t);
                     output[length++] = '0';
                     output[length++] = 'x';
 
