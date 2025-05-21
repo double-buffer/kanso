@@ -37,8 +37,8 @@ void RegisterTest(const char* category, const char* name, TestFunction testFunct
 #define TestAssertCore(expr, expected, actual, operator)                                \
     do {                                            \
         if (!(expr)) {                              \
-            TestEntry *t = &globalTests[globalCurrentTestIndex]; \
-            t->HasError = true; \
+            TestEntry* testEntry = &globalTests[globalCurrentTestIndex]; \
+            testEntry->HasError = true; \
             uint32_t messageLength; \
             StringFormat(globalTestLastErrorMessage, &messageLength, "%s\n  Expected: %s\n    Actual: %d %s %d", __FILE__, #expr, expected, operator, actual);                  \
             return;                                 \

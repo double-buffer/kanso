@@ -20,7 +20,7 @@ void MemorySetDefault(void* destination, size_t length, size_t stride, const voi
     {
         for (size_t j = 0; j < stride; j++)
         {
-            pointer[i * stride + j] = ((uint8_t*)value)[j];
+            pointer[(i * stride) + j] = ((uint8_t*)value)[j];
         }
     }
 }
@@ -43,7 +43,7 @@ void MemoryCopyDefault(void* destination, size_t destinationLength, size_t strid
     {
         for (size_t j = 0; j < stride; j++)
         {
-            pointer[i * stride + j] = ((uint8_t*)source)[i * stride + j];
+            pointer[(i * stride) + j] = ((uint8_t*)source)[(i * stride) + j];
         }
     }
 }

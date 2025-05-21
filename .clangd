@@ -1,0 +1,12 @@
+CompileFlags:
+  Add: [-std=gnu23, -Wall, -Wextra, -nostdinc, -nobuiltininc]
+
+Completion:
+  HeaderInsertion: Never
+
+Diagnostics:
+  UnusedIncludes: None
+  MissingIncludes: None
+  ClangTidy:
+    Add: [performance*, modernize*, readability*]
+ 
