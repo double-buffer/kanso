@@ -4,8 +4,19 @@
 #include "String.h"
 
 #define MAX_TESTS 1024
+#define TEST_ERROR_MESSAGE_LENGTH 2048
+
+typedef enum
+{
+    TestRunState_Start,
+    TestRunState_OK,
+    TestRunState_Passed,
+    TestRunState_Failed,
+    TestRunState_Separator,
+} TestRunState;
 
 typedef void (*TestFunction)();
+typedef void (*TestLogHandler)(TestRunState state, const char* message, ...);
 
 typedef struct 
 {
@@ -15,18 +26,18 @@ typedef struct
     bool HasError;
 } TestEntry;
 
+
 extern TestEntry globalTests[MAX_TESTS];
 extern uint32_t globalTestCount;
 extern uint32_t globalCurrentTestIndex;
-extern char globalTestLastErrorMessage[2048];
+extern char globalTestLastErrorMessage[TEST_ERROR_MESSAGE_LENGTH];
 
-void RegisterTest(const char* category, const char* name, TestFunction testFunction);
 
 #define Test(category, name) \
     static void test_##category##_##name(); \
     \
-    static void __attribute__((constructor)) \
-    __register_##category##_##name(void) \
+    [[gnu::constructor]] \
+    static void __register_##category##_##name() \
     { \
         RegisterTest(#category, #name, test_##category##_##name); \
     } \
@@ -48,15 +59,5 @@ void RegisterTest(const char* category, const char* name, TestFunction testFunct
 #define TestAssertEquals(expected, actual) TestAssertCore((expected) == (actual), expected, actual, "==")
 #define TestAssertNotEquals(expected, actual) TestAssertCore((expected) != (actual), expected, actual, "!=")
 
-typedef enum
-{
-    TestRunState_Start,
-    TestRunState_OK,
-    TestRunState_Passed,
-    TestRunState_Failed,
-    TestRunState_Separator,
-} TestRunState;
-
-typedef void (*TestLogHandler)(TestRunState state, const char* message, ...);
-
+void RegisterTest(const char* category, const char* name, TestFunction testFunction);
 void TestRun(TestLogHandler handler);

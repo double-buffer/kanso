@@ -3,7 +3,7 @@
 TestEntry globalTests[MAX_TESTS];
 uint32_t globalTestCount = 0;
 uint32_t globalCurrentTestIndex = 0;
-char globalTestLastErrorMessage[2048] = {};
+char globalTestLastErrorMessage[TEST_ERROR_MESSAGE_LENGTH] = {};
 
 void RegisterTest(const char* category, const char* name, TestFunction testFunction)
 {

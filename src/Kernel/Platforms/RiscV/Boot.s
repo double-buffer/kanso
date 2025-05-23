@@ -1,3 +1,5 @@
+.equ ADDRESS_SIZE, 8
+
 .global boot
 
 .section .text.kernel
@@ -20,12 +22,12 @@ boot:
     # Run init array 
     la    t2, __INIT_ARRAY_START
     la    t3, __INIT_ARRAY_END
-    bge   t2, t3, .Lenter_kernel_main
+    beq   t2, t3, .Lenter_kernel_main
 
 .Lrun_init_array_loop:
     ld    t4, (t2)
     jalr  ra, t4, 0
-    addi  t2, t2, 8
+    addi  t2, t2, ADDRESS_SIZE
     blt   t2, t3, .Lrun_init_array_loop
 
 .Lenter_kernel_main:

@@ -27,7 +27,7 @@ message("CLANG: ${_CLANG}")
 
 set(CMAKE_C_COMPILER "${_CLANG}")
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wpedantic -Wno-language-extension-token -fansi-escape-codes -fcolor-diagnostics --target=${COMPILE_TARGET} -fno-stack-protector -nostdlib -ffreestanding -mcmodel=medany")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wpedantic -Wno-language-extension-token -fansi-escape-codes -fcolor-diagnostics --target=${COMPILE_TARGET} -fno-stack-protector -nostdinc -nostdlib -ffreestanding -mcmodel=medany")
 
 set(CMAKE_ASM_COMPILER "${_CLANG}")
 set(CMAKE_ASM_FLAGS "--target=${COMPILE_TARGET} -Wno-unused-command-line-argument")
