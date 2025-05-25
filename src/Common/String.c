@@ -1,6 +1,23 @@
 #include "String.h"
 #include "Memory.h"
 
+ReadOnlySpanChar String(const char* string)
+{
+    return MakeReadOnlySpanChar(string, __builtin_strlen(string));
+}
+
+void StringFormat2(SpanChar* destination, ReadOnlySpanChar message, ...)
+{
+    uint32_t length;
+
+    va_list vargs;
+    va_start(vargs, message);
+    StringFormatVA(destination->Pointer, &length, message.Pointer, vargs);
+    va_end(vargs);
+
+    destination->Length = length;
+}
+
 void StringFormat(char* output, uint32_t* lengthOutput, const char* message, ...)
 {
     va_list vargs;
@@ -37,7 +54,7 @@ void StringFormatVA(char* output, uint32_t* lengthOutput, const char* message, v
 
                 case 's':
                 {
-                    const char *stringArgument = va_arg(vargs, const char *);
+                    const char* stringArgument = va_arg(vargs, const char *);
                     
                     while (*stringArgument) 
                     {

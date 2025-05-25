@@ -1,6 +1,6 @@
 #include "Memory.h"
 
-void MemorySetUint8(size_t stride, void* destination, size_t destinationLength, const void* value)
+void MemorySetByte(size_t stride, void* destination, size_t destinationLength, const void* value)
 {
     (void)stride;
     uint8_t* pointer = destination;
@@ -25,7 +25,7 @@ void MemorySetDefault(size_t stride, void* destination, size_t destinationLength
     }
 }
 
-void MemoryCopyUint8(size_t stride, void* destination, size_t destinationLength, const void* source, size_t sourceLength)
+void MemoryCopyByte(size_t stride, void* destination, size_t destinationLength, const void* source, size_t sourceLength)
 {
     (void)stride;
 
@@ -55,7 +55,20 @@ void MemoryCopyDefault(size_t stride, void* destination, size_t destinationLengt
 }
 
 // TODO: Move that to the standard library
+
+size_t strlen(const char* string)
+{
+    const char* pointer = string;
+
+    while (*pointer)
+    {
+        ++pointer;
+    }
+
+    return (size_t)(pointer - string);
+}
+
 void memset(uint8_t* destination, uint8_t value, size_t sizeInBytes) 
 {
-    MemorySetUint8(sizeof(uint8_t), destination, sizeInBytes, &value);
+    MemorySetByte(sizeof(uint8_t), destination, sizeInBytes, &value);
 }
