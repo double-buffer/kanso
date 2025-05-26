@@ -1,3 +1,4 @@
+#include "String.h"
 #include "Test.h"
 
 Test(String, String_HasCorrectValues)
@@ -32,6 +33,31 @@ Test(String, StringFormat_WithParameters_HasCorrectValues)
     StringFormat(&destination, testString, intParameter, stringParameter);
 
     // Assert
-    TestAssertStringEquals(finalString, destination);
+    TestAssertStringEquals(finalString, ToReadOnlySpanChar(destination));
 }
 
+Test(String, StringEquals_WithSameStrings_ReturnsTrue)
+{
+    // Arrange
+    const auto testString1 = String("Test String");
+    const auto testString2 = String("Test String");
+
+    // Act
+    auto result = StringEquals(testString1, testString2);
+
+    // Assert
+    TestAssertEquals(true, result);
+}
+
+Test(String, StringEquals_WithDifferentStrings_ReturnsFalse)
+{
+    // Arrange
+    const auto testString1 = String("Test String");
+    const auto testString2 = String("Bad String");
+
+    // Act
+    auto result = StringEquals(testString1, testString2);
+
+    // Assert
+    TestAssertEquals(false, result);
+}

@@ -5,6 +5,24 @@ ReadOnlySpanChar String(const char* string)
     return MakeReadOnlySpanChar(string, __builtin_strlen(string));
 }
 
+bool StringEquals(ReadOnlySpanChar string1, ReadOnlySpanChar string2)
+{
+    if (string1.Length != string2.Length)
+    {
+        return false;
+    }
+
+    for (uint32_t i = 0; i < string1.Length; i++)
+    {
+        if (string1.Pointer[i] != string2.Pointer[i])
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 void StringFormat(SpanChar* destination, ReadOnlySpanChar message, ...)
 {
     va_list vargs;
@@ -105,3 +123,4 @@ void StringFormatVargs(SpanChar* destination, ReadOnlySpanChar message, va_list 
     destination->Length = length;
     destination->Pointer[length] = '\0';
 }
+

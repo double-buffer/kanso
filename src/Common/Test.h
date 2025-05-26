@@ -68,18 +68,8 @@ extern SpanChar globalTestLastErrorMessage;
             StringFormat(&globalTestLastErrorMessage, String("%s\n  Expected: (%s.Length) == (%s.Length)\n    Actual: %d == %d"), __FILE__, #expected, #actual, expected.Length, actual.Length); \
             return; \
         } \
-        auto containsErrors = false; \
-        \ 
-        for (uint32_t i = 0; i < actual.Length; i++) \
-        { \
-            if (actual.Pointer[i] != expected.Pointer[i]) \
-            { \
-                containsErrors = true; \
-                break; \
-            } \
-        } \
         \
-        if (containsErrors) \
+        if (!StringEquals(expected, actual)) \
         { \
             TestEntry* testEntry = &globalTests[globalCurrentTestIndex]; \
             testEntry->HasError = true; \

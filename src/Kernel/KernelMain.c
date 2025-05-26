@@ -3,6 +3,7 @@
 #include "Memory.h"
 #include "Platform.h"
 #include "KernelConsole.h"
+#include "Kernel.h"
 
 const char KernelLogo[] = 
 { 
@@ -24,6 +25,7 @@ void KernelSupervisorTrapHandler()
 
 void KernelMain()
 {
+    KernelPanic(String("KernelPanic: %s"), "Error Message :(");
     KernelConsolePrint(String("\n\n%s\nKanso OS 1.0-DEV1\n\n"), KernelLogo);
 
     CpuSetSupervisorTrapHandler(&KernelSupervisorTrapHandler);
