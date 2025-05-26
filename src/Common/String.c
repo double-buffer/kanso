@@ -1,54 +1,40 @@
 #include "String.h"
-#include "Memory.h"
 
 ReadOnlySpanChar String(const char* string)
 {
     return MakeReadOnlySpanChar(string, __builtin_strlen(string));
 }
 
-void StringFormat2(SpanChar* destination, ReadOnlySpanChar message, ...)
-{
-    uint32_t length;
-
-    va_list vargs;
-    va_start(vargs, message);
-    StringFormatVA(destination->Pointer, &length, message.Pointer, vargs);
-    va_end(vargs);
-
-    destination->Length = length;
-}
-
-void StringFormat(char* output, uint32_t* lengthOutput, const char* message, ...)
+void StringFormat(SpanChar* destination, ReadOnlySpanChar message, ...)
 {
     va_list vargs;
     va_start(vargs, message);
-    
-    StringFormatVA(output, lengthOutput, message, vargs);
-
+    StringFormatVargs(destination, message, vargs);
     va_end(vargs);
 }
 
-void StringFormatVA(char* output, uint32_t* lengthOutput, const char* message, va_list vargs)
+void StringFormatVargs(SpanChar* destination, ReadOnlySpanChar message, va_list vargs)
 {
     uint32_t length = 0;
+    char* messagePointer = (char*)message.Pointer;
 
-    while (*message)
+    while (*messagePointer)
     {
-        if (*message == '%')
+        if (*messagePointer == '%')
         {
-            message++;
+            messagePointer++;
 
-            switch (*message)
+            switch (*messagePointer)
             {
                 case '\0':
                 {
-                    message--;
+                    messagePointer--;
                     break;
                 }
 
                 case '%':
                 {
-                    output[length++] = '%';
+                    destination->Pointer[length++] = '%';
                     break;
                 }
 
@@ -58,7 +44,7 @@ void StringFormatVA(char* output, uint32_t* lengthOutput, const char* message, v
                     
                     while (*stringArgument) 
                     {
-                        output[length++] = *stringArgument;
+                        destination->Pointer[length++] = *stringArgument;
                         stringArgument++;
                     }
                     break;
@@ -72,7 +58,7 @@ void StringFormatVA(char* output, uint32_t* lengthOutput, const char* message, v
 
                     if (decimalArgument < 0) 
                     {
-                        output[length++] = '-';
+                        destination->Pointer[length++] = '-';
                         magnitude = -magnitude;
                     }
 
@@ -85,7 +71,7 @@ void StringFormatVA(char* output, uint32_t* lengthOutput, const char* message, v
 
                     while (divisor > 0) 
                     {
-                        output[length++] = '0' + magnitude / divisor;
+                        destination->Pointer[length++] = '0' + magnitude / divisor;
 
                         magnitude %= divisor;
                         divisor /= 10;
@@ -96,13 +82,13 @@ void StringFormatVA(char* output, uint32_t* lengthOutput, const char* message, v
                 case 'x':
                 {
                     uint64_t hexaArgument = va_arg(vargs, uint64_t);
-                    output[length++] = '0';
-                    output[length++] = 'x';
+                    destination->Pointer[length++] = '0';
+                    destination->Pointer[length++] = 'x';
 
                     for (int64_t i = 15; i >= 0; i--) 
                     {
                         unsigned nibble = (hexaArgument >> (i * 4)) & 0xf;
-                        output[length++] = "0123456789abcdef"[nibble];
+                        destination->Pointer[length++] = "0123456789abcdef"[nibble];
                     }
                     break;
                 }
@@ -110,12 +96,12 @@ void StringFormatVA(char* output, uint32_t* lengthOutput, const char* message, v
         }
         else 
         {
-            output[length++] = *message;
+            destination->Pointer[length++] = *messagePointer;
         }
 
-        message++;
+        messagePointer++;
     }
 
-    *lengthOutput = length;
+    destination->Length = length;
+    destination->Pointer[length] = '\0';
 }
-

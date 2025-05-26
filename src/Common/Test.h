@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Memory.h"
 #include "Types.h"
 #include "String.h"
 
@@ -16,7 +17,7 @@ typedef enum
 } TestRunState;
 
 typedef void (*TestFunction)();
-typedef void (*TestLogHandler)(TestRunState state, const char* message, ...);
+typedef void (*TestLogHandler)(TestRunState state, ReadOnlySpanChar message, ...);
 
 typedef struct 
 {
@@ -30,7 +31,7 @@ typedef struct
 extern TestEntry globalTests[MAX_TESTS];
 extern uint32_t globalTestCount;
 extern uint32_t globalCurrentTestIndex;
-extern char globalTestLastErrorMessage[TEST_ERROR_MESSAGE_LENGTH];
+extern SpanChar globalTestLastErrorMessage;
 
 
 #define Test(category, name) \
@@ -45,19 +46,47 @@ extern char globalTestLastErrorMessage[TEST_ERROR_MESSAGE_LENGTH];
     static void test_##category##_##name() \
 
 
-#define TestAssertCore(expr, expected, actual, operator)                                \
-    do {                                            \
-        if (!(expr)) {                              \
+#define TestAssertCore(expr, expected, actual, operator) \
+    do { \
+        if (!(expr)) { \
             TestEntry* testEntry = &globalTests[globalCurrentTestIndex]; \
             testEntry->HasError = true; \
-            uint32_t messageLength; \
-            StringFormat(globalTestLastErrorMessage, &messageLength, "%s\n  Expected: %s\n    Actual: %d %s %d", __FILE__, #expr, expected, operator, actual);                  \
-            return;                                 \
-        }                                           \
+            StringFormat(&globalTestLastErrorMessage, String("%s\n  Expected: %s\n    Actual: %d %s %d"), __FILE__, #expr, expected, operator, actual); \
+            return; \
+        } \
     } while (false)
 
 #define TestAssertEquals(expected, actual) TestAssertCore((expected) == (actual), expected, actual, "==")
 #define TestAssertNotEquals(expected, actual) TestAssertCore((expected) != (actual), expected, actual, "!=")
+
+#define TestAssertStringEquals(expected, actual) \
+    do { \
+        if (finalString.Length != destination.Length) \
+        { \
+            TestEntry* testEntry = &globalTests[globalCurrentTestIndex]; \
+            testEntry->HasError = true; \
+            StringFormat(&globalTestLastErrorMessage, String("%s\n  Expected: (%s.Length) == (%s.Length)\n    Actual: %d == %d"), __FILE__, #expected, #actual, expected.Length, actual.Length); \
+            return; \
+        } \
+        auto containsErrors = false; \
+        \ 
+        for (uint32_t i = 0; i < actual.Length; i++) \
+        { \
+            if (actual.Pointer[i] != expected.Pointer[i]) \
+            { \
+                containsErrors = true; \
+                break; \
+            } \
+        } \
+        \
+        if (containsErrors) \
+        { \
+            TestEntry* testEntry = &globalTests[globalCurrentTestIndex]; \
+            testEntry->HasError = true; \
+            StringFormat(&globalTestLastErrorMessage, String("%s\n  Expected: (%s) == (%s)\n    Actual: \"%s\" == \"%s\""), __FILE__, #expected, #actual, expected.Pointer, actual.Pointer); \
+            return; \
+        } \
+    } while (false)
 
 void RegisterTest(const char* category, const char* name, TestFunction testFunction);
 void TestRun(TestLogHandler handler);

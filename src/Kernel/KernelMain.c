@@ -1,4 +1,5 @@
 #include "Types.h"
+#include "String.h"
 #include "Memory.h"
 #include "Platform.h"
 #include "KernelConsole.h"
@@ -14,7 +15,7 @@ __attribute__((section(".text.interrupt")))
 void KernelSupervisorTrapHandler()
 {
     CpuClearSupervisorPendingInterrupts(CpuInterruptType_Timer);
-    KernelConsolePrint("Kernel trap handler: %d.\n", CpuReadTime());
+    KernelConsolePrint(String("Kernel trap handler: %d.\n"), CpuReadTime());
 
     //CpuDisableSupervisorInterrupts(CpuInterruptType_Timer);
     //SbiSetTimer((uint64_t)-1);
@@ -23,7 +24,7 @@ void KernelSupervisorTrapHandler()
 
 void KernelMain()
 {
-    KernelConsolePrint("\n\n%s\nKanso OS 1.0-DEV1\n\n", KernelLogo);
+    KernelConsolePrint(String("\n\n%s\nKanso OS 1.0-DEV1\n\n"), KernelLogo);
 
     CpuSetSupervisorTrapHandler(&KernelSupervisorTrapHandler);
     BiosSetTimer(CpuReadTime() + 10000000);

@@ -1,7 +1,7 @@
 #pragma once
 
+#include "Memory.h"
 #include "Types.h"
 
-// TODO: Replace that by CharSpan?
-void KernelConsolePrint(const char* message, ...);
+void KernelConsolePrint(ReadOnlySpanChar message, ...);
 

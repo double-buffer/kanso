@@ -1,5 +1,4 @@
 #include "Test.h"
-#include "Memory.h"
 
 Test(String, String_HasCorrectValues)
 {
@@ -22,27 +21,17 @@ Test(String, String_HasCorrectValues)
 Test(String, StringFormat_WithParameters_HasCorrectValues)
 {
     // Arrange
-    const auto testString = String("Test: %d, %s\n");
+    const auto testString = String("Test: %d, %s");
     const auto intParameter = 28;
     const auto stringParameter = String("TestParameter");
     
-    const auto finalString = String("Test: 28, TestParameter\n"); 
+    const auto finalString = String("Test: 28, TestParameter"); 
     auto destination = StackAllocChar(64);
 
-    char testData[255];
-    //auto destination = Span(testData, 255);
-
     // Act
-    // TODO: Remove number 2
-    StringFormat2(&destination, testString, intParameter, stringParameter);
+    StringFormat(&destination, testString, intParameter, stringParameter);
 
     // Assert
-    // TODO: TestAssertString
-    TestAssertEquals(finalString.Length, destination.Length);
-
-    for (uint32_t i = 0; i < destination.Length; i++)
-    {
-        TestAssertEquals(finalString.Pointer[i], destination.Pointer[i]);
-    }
+    TestAssertStringEquals(finalString, destination);
 }
 

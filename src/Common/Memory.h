@@ -7,84 +7,46 @@
 #define MemoryOffsetOf(type, member) __builtin_offsetof(type, member)
 
 
-#define _DefineSpan(prefix, type) \
-    typedef struct Span##prefix { type* Pointer; size_t Length; } Span##prefix; \
-    typedef struct ReadOnlySpan##prefix { const type* Pointer; size_t Length; } ReadOnlySpan##prefix; \
+#define DefineSpan(name, type) \
+    typedef struct Span##name { type* Pointer; size_t Length; } Span##name; \
+    typedef struct ReadOnlySpan##name { const type* Pointer; size_t Length; } ReadOnlySpan##name; \
     \
-    static inline Span##prefix MakeSpan##prefix(type* pointer, size_t length) \
+    static inline Span##name MakeSpan##name(type* pointer, size_t length) \
     { \
-        return (Span##prefix) { .Pointer = pointer, .Length = length }; \
+        return (Span##name) { .Pointer = pointer, .Length = length }; \
     } \
     \
-    static inline ReadOnlySpan##prefix MakeReadOnlySpan##prefix(const type* pointer, size_t length) \
+    static inline ReadOnlySpan##name MakeReadOnlySpan##name(const type* pointer, size_t length) \
     { \
-        return (ReadOnlySpan##prefix) { .Pointer = pointer, .Length = length }; \
+        return (ReadOnlySpan##name) { .Pointer = pointer, .Length = length }; \
     } \
     \
-    static inline ReadOnlySpan##prefix ToReadOnlySpan##prefix(Span##prefix span) \
+    static inline ReadOnlySpan##name ToReadOnlySpan##name(Span##name span) \
     { \
-        return (ReadOnlySpan##prefix) { .Pointer = span.Pointer, .Length = span.Length }; \
+        return (ReadOnlySpan##name) { .Pointer = span.Pointer, .Length = span.Length }; \
     }
 
-_DefineSpan(Char, char)
-_DefineSpan(Uint8, uint8_t)
-_DefineSpan(Uint32, uint32_t)
-_DefineSpan(Uint64, uint64_t)
+#define DefineSpanStackAlloc(name, type, length) \
+    (__extension__ ({ \
+        static_assert((length) >= 0, "StackAlloc: length must be an integer-constant expression"); \
+        type array[(length)]; \
+        MakeSpan##name(array, (size_t)(length)); \
+    }))
 
-#define Span(pointer, length) \
-    _Generic((pointer)+0, \
-        char*: MakeSpanChar, \
-        uint8_t*: MakeSpanUint8, \
-        uint32_t*: MakeSpanUint32, \
-        uint64_t*: MakeSpanUint64 \
-    )((pointer), (length))
+DefineSpan(Char, char)
+#define StackAllocChar(length) DefineSpanStackAlloc(Char, char, (length))
 
-#define ReadOnlySpan(pointer, length) \
-    _Generic((pointer)+0, \
-        const char*: MakeReadOnlySpanChar, \
-        const uint8_t*: MakeReadOnlySpanUint8, \
-        const uint32_t*: MakeReadOnlySpanUint32, \
-        const uint64_t*: MakeReadOnlySpanUint64 \
-    )((pointer), (length))
+DefineSpan(Uint8, uint8_t)
+#define StackAllocUint8(length) DefineSpanStackAlloc(Uint8, uint8_t, (length))
 
-#define _ConvertToReadOnlySpan(span, readOnlySpanType, castType) ((readOnlySpanType){ .Pointer = (castType)(span).Pointer, .Length = (span).Length })
+DefineSpan(Uint32, uint32_t)
+#define StackAllocUint32(length) DefineSpanStackAlloc(Uint32, uint32_t, (length))
 
-#define StackAllocSpan(Type, Count) \
-    ( (struct { Type *Pointer; size_t Length; }){    \
-          (Type[(Count)]){0}, (size_t)(Count) } )
-
-#define _CheckSpanType(span) \
-    _Generic((span), \
-        SpanChar: true, \
-        SpanUint8: true, \
-        SpanUint32: true, \
-        SpanUint64: true, \
-        ReadOnlySpanChar: true, \
-        ReadOnlySpanUint8: true, \
-        ReadOnlySpanUint32: true, \
-        ReadOnlySpanUint64: true, \
-        default: false)
-
-#define ToReadOnlySpan(span) \
-( \
-    /* Compile time guard */ \
-    (void)sizeof(char[ _CheckSpanType(span) ? 1 : -1 ]), \
-    _Generic((span), \
-        ReadOnlySpanChar: (span), \
-        ReadOnlySpanUint8: (span), \
-        ReadOnlySpanUint32: (span), \
-        ReadOnlySpanUint64: (span), \
-        SpanChar: _ConvertToReadOnlySpan(span, ReadOnlySpanChar, const char*), \
-        SpanUint8: _ConvertToReadOnlySpan(span, ReadOnlySpanUint8, const uint8_t*), \
-        SpanUint32: _ConvertToReadOnlySpan(span, ReadOnlySpanUint32, const uint32_t*), \
-        SpanUint64: _ConvertToReadOnlySpan(span, ReadOnlySpanUint64, const uint64_t*) \
-    ) \
-)
+DefineSpan(Uint64, uint64_t)
+#define StackAllocUint64(length) DefineSpanStackAlloc(Uint64, uint64_t, (length))
 
 #define SpanSlice(span, offset, length) \
 ( \
-    /* Compile time guard */ \
-    (void)sizeof(char[ _CheckSpanType(span) ? 1 : -1 ]), \
     (typeof(span)) \
     { \
         .Pointer = (span).Pointer + (offset), \
@@ -115,22 +77,21 @@ void MemoryCopyDefault(size_t stride, void* destination, size_t destinationLengt
         default: MemoryCopyDefault \
     )(sizeof(*(destination).Pointer), (destination).Pointer, (destination).Length, (source).Pointer, (source).Length)
 
-#define MemoryCopy(destination, source) \
-    do \
-    { \
-        static_assert( \
-            _Generic((source), \
-                ReadOnlySpanChar: true, \
-                ReadOnlySpanUint8: true, \
-                ReadOnlySpanUint32: true, \
-                ReadOnlySpanUint64: true, \
-                default: false), \
-            "MemoryCopy: source span must be read-only"); \
-        static_assert(sizeof(*(destination).Pointer) == sizeof(*(source).Pointer), "MemoryCopy: element size mismatch"); \
-        _MemoryCopyDispatch((destination), (source)); \
-    } while (false)
 
+#define _IS_READONLY_SPAN(span)                                            \
+        __builtin_types_compatible_p(                                      \
+                __typeof__((span).Pointer),                                \
+                const __typeof__(*(span).Pointer) *)
 
+#define _ASSERT_READONLY_SPAN(src)                                         \
+        _Static_assert( _IS_READONLY_SPAN(src),                            \
+                        "MemoryCopy: source span must be read-only")
+
+#define MemoryCopy(destination, source)                                           \
+    do {                                                                          \
+        _ASSERT_READONLY_SPAN(source);         \
+        _MemoryCopyDispatch((destination), (source));                             \
+    } while (0)
 
 
 // TODO: Move that to the standard library

@@ -1,5 +1,4 @@
 #include "Test.h"
-#include "Memory.h"
 
 // TODO: SpanSlice: Test Length
 // TODO: Memory set with a span that has less elements
@@ -11,7 +10,7 @@ Test(Memory, SpanSlice_WithSpan_HasCorrectValues)
     const uint32_t sliceOffset = 2;
     const uint32_t sliceLength = 5;
 
-    auto span = StackAlloc(itemCount);
+    auto span = StackAllocUint32(itemCount);
 
     for (uint32_t i = 0; i < itemCount; i++)
     {
@@ -106,7 +105,7 @@ Test(Memory, MemoryCopy_WithUint32_HasCorrectValues)
     MemorySet(destination, 0);
     
     // Act
-    MemoryCopy(destination, ToReadOnlySpan(source));
+    MemoryCopy(destination, ToReadOnlySpanUint32(source));
 
     // Assert
     for (uint32_t i = 0; i < itemCount; i++)
@@ -130,7 +129,7 @@ Test(Memory, MemoryCopy_WithUint8_HasCorrectValues)
     MemorySet(destination, 0);
     
     // Act
-    MemoryCopy(destination, ToReadOnlySpan(source));
+    MemoryCopy(destination, ToReadOnlySpanUint8(source));
 
     // Assert
     for (uint32_t i = 0; i < itemCount; i++)
