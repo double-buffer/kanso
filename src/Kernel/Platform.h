@@ -8,6 +8,7 @@ typedef enum
     CpuInterruptType_Software = 1,
     CpuInterruptType_Timer = 2,
     CpuInterruptType_External = 4,
+    CpuInterruptType_All = 0xFF,
 } CpuInterruptType;
 
 typedef void (*CpuTrapHandler)();

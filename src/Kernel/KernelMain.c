@@ -25,8 +25,7 @@ void KernelSupervisorTrapHandler()
 
 void KernelMain()
 {
-    KernelPanic(String("KernelPanic: %s"), "Error Message :(");
-    KernelConsolePrint(String("\n\n%s\nKanso OS 1.0-DEV1\n\n"), KernelLogo);
+    KernelConsolePrint(String("\n\n\x1b[36m%s\x1b[0m\nKanso OS 1.0-DEV1\n\n"), KernelLogo);
 
     CpuSetSupervisorTrapHandler(&KernelSupervisorTrapHandler);
     BiosSetTimer(CpuReadTime() + 10000000);
