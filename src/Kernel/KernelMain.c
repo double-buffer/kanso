@@ -25,7 +25,11 @@ void KernelSupervisorTrapHandler()
 
 void KernelMain()
 {
-    KernelConsolePrint(String("\n\n\x1b[36m%s\x1b[0m\nKanso OS 1.0-DEV1\n\n"), KernelLogo);
+    auto platformInformation = PlatformGetInformation();
+
+    KernelConsolePrint(String("\n\n\x1b[36m%s\x1b[0m\n"), KernelLogo);
+    KernelConsolePrint(String("Kanso OS 1.0-DEV1 "));
+    KernelConsolePrint(String("(%s %d-bit)\n\n"), platformInformation.Name.Pointer, platformInformation.ArchitectureBits);
 
     CpuSetSupervisorTrapHandler(&KernelSupervisorTrapHandler);
     BiosSetTimer(CpuReadTime() + 10000000);

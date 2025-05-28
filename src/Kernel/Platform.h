@@ -1,6 +1,15 @@
 #pragma once
 
+#include "Memory.h"
 #include "Types.h"
+
+typedef struct
+{
+    ReadOnlySpanChar Name;
+    uint32_t ArchitectureBits;
+} PlatformInformation;
+
+PlatformInformation PlatformGetInformation();
 
 typedef enum
 {
@@ -35,6 +44,6 @@ typedef enum
     BiosResetReason_SystemFailure = 1,
 } BiosResetReason;
 
-void BiosDebugConsoleWrite(const char* message, uint32_t length);
+void BiosDebugConsoleWrite(ReadOnlySpanChar message);
 void BiosSetTimer(uint64_t timeValue);
 void BiosReset(BiosResetType resetType, BiosResetReason reason);

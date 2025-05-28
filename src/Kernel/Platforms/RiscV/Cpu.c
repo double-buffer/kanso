@@ -1,42 +1,76 @@
 #include "Types.h"
 #include "../../Platform.h"
 
-uint64_t ComputeCpuInterruptMask(CpuInterruptType types)
+uintptr_t ComputeCpuInterruptMask(CpuInterruptType types)
 {
-    auto mask = 0ul;
+    auto mask = 0;
 
     if (types & CpuInterruptType_Software)
     {
-        mask |= (1ul << 1);
+        mask |= (uintptr_t)1 << 1;
     }
 
     if (types & CpuInterruptType_Timer)
     {
-        mask |= (1ul << 5);
+        mask |= (uintptr_t)1 << 5;
     }
 
     if (types & CpuInterruptType_External)
     {
-        mask |= (1ul << 9);
+        mask |= (uintptr_t)1 << 9;
     }
 
     return mask;
 }
 
+// TODO: Add Tests
+#if PLATFORM_ARCHITECTURE_BITS == 32
+inline uint64_t CpuReadTime(void)
+{
+    uint32_t high, low, tmp;
+
+    __asm__ volatile (
+        ".Lread_time_%=:\n"
+        "rdtimeh %0\n"
+        "rdtime  %1\n"
+        "rdtimeh %2\n"
+        "bne     %0, %2, .Lread_time_%="
+        : "=&r"(high), "=&r"(low), "=&r"(tmp));
+
+    return ((uint64_t)high << 32) | low;
+}
+
+inline uint64_t CpuReadCycle(void)
+{
+    uint32_t high, low, tmp;
+
+    __asm__ volatile (
+        ".Lread_cycle_%=:\n"
+        "rdcycleh %0\n"
+        "rdcycle  %1\n"
+        "rdcycleh %2\n"
+        "bne      %0, %2, .Lread_cycle_%="
+        : "=&r"(high), "=&r"(low), "=&r"(tmp));
+
+    return ((uint64_t)high << 32) | low;
+}
+#else
 inline uint64_t CpuReadTime()
 {
-    auto result = 0ul;
-    __asm__ volatile("rdtime %0" : "=r" (result));
+    auto result = 0UL;
+    __asm__ volatile("rdtime %0" : "=r"(result));
     return result;
 }
 
 inline uint64_t CpuReadCycle()
 {
-    auto result = 0ul;
-    __asm__ volatile("rdcycle %0" : "=r" (result));
+    auto result = 0UL;
+    __asm__ volatile("rdcycle %0" : "=r"(result));
     return result;
 }
+#endif
 
+// TODO: Add test that test if the registers are well saved and restored!
 inline void CpuSetSupervisorTrapHandler(CpuTrapHandler trapHandler)
 {
     __asm__ volatile(

@@ -14,7 +14,7 @@ set_target_properties(Kernel PROPERTIES
 )
 
 
-add_executable(KernelTest UnityBuild.c Boot.s)
+add_executable(KernelTest UnityBuild.c Boot.S)
 
 target_link_libraries(KernelTest PRIVATE Common)
 

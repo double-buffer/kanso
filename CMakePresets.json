@@ -16,12 +16,27 @@
                 "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/Toolchains/riscv64.cmake",
                 "CMAKE_BUILD_TYPE": "Release"
             }
+        },
+        {
+            "name": "riscv32",
+            "displayName": "RISC-V 32 bits",
+            "description": "Compile for RISC-V 32 bits",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build/riscv32",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/Toolchains/riscv32.cmake",
+                "CMAKE_BUILD_TYPE": "Release"
+            }
         }
     ],
     "buildPresets": [
         {
             "name": "riscv64",
             "configurePreset": "riscv64"
+        },
+        {
+            "name": "riscv32",
+            "configurePreset": "riscv32"
         }
     ]
 }

@@ -1,13 +1,15 @@
 #!/bin/bash
 
 # QEMU file path
-QEMU=qemu-system-riscv64
+PLATFORM=$1
 
-if [ "$1" = "test" ]; then
-    KERNEL="build/riscv64/bin/kernel-test.elf"
+if [ "$2" = "test" ]; then
+    KERNEL="build/$PLATFORM/bin/kernel-test.elf"
 else
-    KERNEL="build/riscv64/bin/kernel.elf"
+    KERNEL="build/$PLATFORM/bin/kernel.elf"
 fi
 
+QEMU=qemu-system-$PLATFORM
+
 # Start QEMU
-$QEMU -machine virt -kernel $KERNEL -serial stdio -monitor none  -nographic -no-reboot
+$QEMU -machine virt -kernel $KERNEL -serial stdio -monitor none -nographic -no-reboot

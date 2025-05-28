@@ -1,4 +1,4 @@
-.equ ADDRESS_SIZE, 8
+#include "AsmCommon.h"
 
 .global boot
 
@@ -25,9 +25,9 @@ boot:
     beq   t2, t3, .Lenter_kernel_main
 
 .Lrun_init_array_loop:
-    ld    t4, (t2)
+    LOAD_PTR t4, (t2)
     jalr  ra, t4, 0
-    addi  t2, t2, ADDRESS_SIZE
+    addi  t2, t2, PTR_SIZE
     blt   t2, t3, .Lrun_init_array_loop
 
 .Lenter_kernel_main:

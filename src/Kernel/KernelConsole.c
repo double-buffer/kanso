@@ -14,5 +14,5 @@ void KernelConsolePrint(ReadOnlySpanChar message, ...)
 
     va_end(vargs);
     
-    BiosDebugConsoleWrite(output.Pointer, output.Length);
+    BiosDebugConsoleWrite(ToReadOnlySpanChar(output));
 }

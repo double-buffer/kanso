@@ -3,7 +3,7 @@
 
 // Doc on SBI is available here: https://github.com/riscv-non-isa/riscv-sbi-doc/tree/master
 
-typedef enum : int64_t
+typedef enum : intptr_t
 {
     SbiReturnCode_Success = 0,
     SbiReturnCode_ErrorFailed = -1,
@@ -32,21 +32,21 @@ typedef enum
 typedef struct
 {
     SbiReturnCode ReturnCode;
-    int64_t Value;
+    intptr_t Value;
 } SbiReturn;
 
-SbiReturn SbiCallFunction(uint64_t extensionId, uint64_t functionId, 
-                     uint64_t parameter0, uint64_t parameter1, uint64_t parameter2,
-                     uint64_t parameter3, uint64_t parameter4, uint64_t parameter5)
+SbiReturn SbiCallFunction(uintptr_t extensionId, uintptr_t functionId, 
+                     uintptr_t parameter0, uintptr_t parameter1, uintptr_t parameter2,
+                     uintptr_t parameter3, uintptr_t parameter4, uintptr_t parameter5)
 {
-    register uint64_t a0 asm ("a0") = parameter0;
-    register uint64_t a1 asm ("a1") = parameter1;
-    register uint64_t a2 asm ("a2") = parameter2;
-    register uint64_t a3 asm ("a3") = parameter3;
-    register uint64_t a4 asm ("a4") = parameter4;
-    register uint64_t a5 asm ("a5") = parameter5;
-    register uint64_t a6 asm ("a6") = functionId;
-    register uint64_t a7 asm ("a7") = extensionId;
+    register uintptr_t a0 asm ("a0") = parameter0;
+    register uintptr_t a1 asm ("a1") = parameter1;
+    register uintptr_t a2 asm ("a2") = parameter2;
+    register uintptr_t a3 asm ("a3") = parameter3;
+    register uintptr_t a4 asm ("a4") = parameter4;
+    register uintptr_t a5 asm ("a5") = parameter5;
+    register uintptr_t a6 asm ("a6") = functionId;
+    register uintptr_t a7 asm ("a7") = extensionId;
 
     __asm__ __volatile__(
         "ecall" 
@@ -61,14 +61,18 @@ SbiReturn SbiCallFunction(uint64_t extensionId, uint64_t functionId,
     };
 }
 
-void BiosDebugConsoleWrite(const char* message, uint32_t length)
+void BiosDebugConsoleWrite(ReadOnlySpanChar message)
 {
-    SbiCallFunction(SbiExtension_DebugConsole, 0x00, length, (uint64_t)message, 0, 0, 0, 0);
+    SbiCallFunction(SbiExtension_DebugConsole, 0x00, message.Length, (uintptr_t)message.Pointer, 0, 0, 0, 0);
 }
 
 void BiosSetTimer(uint64_t timeValue)
 {
+#if PLATFORM_ARCHITECTURE_BITS == 32
+    SbiCallFunction(SbiExtension_Time, 0x00, (uintptr_t)timeValue, (uintptr_t)(timeValue >> 32), 0, 0, 0, 0);
+#else
     SbiCallFunction(SbiExtension_Time, 0x00, timeValue, 0, 0, 0, 0, 0);
+#endif
 }
 
 void BiosReset(BiosResetType resetType, BiosResetReason reason)
