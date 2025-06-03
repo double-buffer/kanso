@@ -1,4 +1,4 @@
-add_executable(Kernel UnityBuild.c Boot.s)
+add_executable(Kernel UnityBuild.c Boot.S SupervisorTrapEntry.S)
 
 target_link_libraries(Kernel PRIVATE Common)
 
@@ -14,7 +14,7 @@ set_target_properties(Kernel PROPERTIES
 )
 
 
-add_executable(KernelTest UnityBuild.c Boot.S)
+add_executable(KernelTest UnityBuild.c Boot.S SupervisorTrapEntry.S)
 
 target_link_libraries(KernelTest PRIVATE Common)
 

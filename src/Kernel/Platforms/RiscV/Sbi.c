@@ -39,25 +39,25 @@ SbiReturn SbiCallFunction(uintptr_t extensionId, uintptr_t functionId,
                      uintptr_t parameter0, uintptr_t parameter1, uintptr_t parameter2,
                      uintptr_t parameter3, uintptr_t parameter4, uintptr_t parameter5)
 {
-    register uintptr_t a0 asm ("a0") = parameter0;
-    register uintptr_t a1 asm ("a1") = parameter1;
-    register uintptr_t a2 asm ("a2") = parameter2;
-    register uintptr_t a3 asm ("a3") = parameter3;
-    register uintptr_t a4 asm ("a4") = parameter4;
-    register uintptr_t a5 asm ("a5") = parameter5;
-    register uintptr_t a6 asm ("a6") = functionId;
-    register uintptr_t a7 asm ("a7") = extensionId;
+    register uintptr_t registerA0 asm ("a0") = parameter0;
+    register uintptr_t registerA1 asm ("a1") = parameter1;
+    register uintptr_t registerA2 asm ("a2") = parameter2;
+    register uintptr_t registerA3 asm ("a3") = parameter3;
+    register uintptr_t registerA4 asm ("a4") = parameter4;
+    register uintptr_t registerA5 asm ("a5") = parameter5;
+    register uintptr_t registerA6 asm ("a6") = functionId;
+    register uintptr_t registerA7 asm ("a7") = extensionId;
 
     __asm__ __volatile__(
         "ecall" 
-        : "+r" (a0), "+r" (a1)
-        : "r" (a2), "r" (a3), "r" (a4), "r" (a5), "r" (a6), "r" (a7)
+        : "+r" (registerA0), "+r" (registerA1)
+        : "r" (registerA2), "r" (registerA3), "r" (registerA4), "r" (registerA5), "r" (registerA6), "r" (registerA7)
         : "memory");
 
     return (SbiReturn)
     {
-        .ReturnCode = a0,
-        .Value = a1
+        .ReturnCode = registerA0,
+        .Value = registerA1
     };
 }
 

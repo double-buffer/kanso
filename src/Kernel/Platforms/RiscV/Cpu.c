@@ -1,6 +1,13 @@
 #include "Types.h"
 #include "../../Platform.h"
 
+struct CpuTrapFrame
+{
+    uintptr_t PC;
+};
+
+extern void supervisor_trap_entry();
+
 uintptr_t ComputeCpuInterruptMask(CpuInterruptType types)
 {
     auto mask = 0;
@@ -23,9 +30,8 @@ uintptr_t ComputeCpuInterruptMask(CpuInterruptType types)
     return mask;
 }
 
-// TODO: Add Tests
 #if PLATFORM_ARCHITECTURE_BITS == 32
-inline uint64_t CpuReadTime(void)
+inline uint64_t CpuReadTime()
 {
     uint32_t high, low, tmp;
 
@@ -40,7 +46,7 @@ inline uint64_t CpuReadTime(void)
     return ((uint64_t)high << 32) | low;
 }
 
-inline uint64_t CpuReadCycle(void)
+inline uint64_t CpuReadCycle()
 {
     uint32_t high, low, tmp;
 
@@ -70,14 +76,13 @@ inline uint64_t CpuReadCycle()
 }
 #endif
 
-// TODO: Add test that test if the registers are well saved and restored!
 inline void CpuSetSupervisorTrapHandler(CpuTrapHandler trapHandler)
 {
     __asm__ volatile(
       "csrw stvec, %0\n"
-      "csrsi sstatus, 2"
+      "csrsi sstatus, 2" // TODO: Confirm the sstatus flag
       : 
-      : "r" (trapHandler));
+      : "r" (supervisor_trap_entry));
 }
 
 inline void CpuEnableSupervisorInterrupts(CpuInterruptType types)
@@ -121,3 +126,7 @@ inline void CpuWaitForInterrupt()
     __asm__ __volatile__("wfi");
 }
 
+inline uintptr_t CpuTrapFrameGetProgramCounter(const CpuTrapFrame* trapFrame)
+{
+    return trapFrame->PC;
+}

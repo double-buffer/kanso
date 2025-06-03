@@ -56,8 +56,10 @@ extern SpanChar globalTestLastErrorMessage;
         } \
     } while (false)
 
+// BUG: There is a bug in the assert only in 32-bit version, when the assert fail
 #define TestAssertEquals(expected, actual) TestAssertCore((expected) == (actual), expected, actual, "==")
 #define TestAssertNotEquals(expected, actual) TestAssertCore((expected) != (actual), expected, actual, "!=")
+#define TestAssertGreaterThan(expected, actual) TestAssertCore((expected) > (actual), expected, actual, ">")
 
 #define TestAssertStringEquals(expected, actual) \
     do { \

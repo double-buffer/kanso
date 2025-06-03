@@ -25,7 +25,7 @@ boot:
     beq   t2, t3, .Lenter_kernel_main
 
 .Lrun_init_array_loop:
-    LOAD_PTR t4, (t2)
+    load_pointer  t4, (t2)
     jalr  ra, t4, 0
     addi  t2, t2, PTR_SIZE
     blt   t2, t3, .Lrun_init_array_loop

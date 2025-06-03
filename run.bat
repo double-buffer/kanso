@@ -1,13 +1,16 @@
 @echo off
 
 REM QEMU file path
-SET QEMU=qemu-system-riscv64
 
-IF "%1"=="test" (
-    SET KERNEL=build/riscv64/bin/kernel-test.elf
+SET PLATFORM=%1
+
+IF "%2"=="test" (
+    SET KERNEL="build/%PLATFORM%/bin/kernel-test.elf"
 ) ELSE (
-    SET KERNEL=build/riscv64/bin/kernel.elf
+    SET KERNEL="build/%PLATFORM%/bin/kernel.elf"
 )
+
+SET QEMU=qemu-system-%PLATFORM%
 
 REM Start QEMU
 %QEMU% -machine virt -kernel %KERNEL% -serial stdio -monitor none -nographic -no-reboot 

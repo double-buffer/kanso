@@ -13,10 +13,12 @@ const char KernelLogo[] =
 
 __attribute__((interrupt("supervisor")))
 __attribute__((section(".text.interrupt")))
-void KernelSupervisorTrapHandler()
+void KernelSupervisorTrapHandler(CpuTrapFrame* trapFrame)
 {
+    auto programCounter = CpuTrapFrameGetProgramCounter(trapFrame);
+
     CpuClearSupervisorPendingInterrupts(CpuInterruptType_Timer);
-    KernelConsolePrint(String("Kernel trap handler: %d.\n"), CpuReadTime());
+    KernelConsolePrint(String("Kernel trap handler: %d (PC=%d).\n"), CpuReadTime(), programCounter);
 
     //CpuDisableSupervisorInterrupts(CpuInterruptType_Timer);
     //SbiSetTimer((uint64_t)-1);
@@ -31,7 +33,7 @@ void KernelMain()
     KernelConsolePrint(String("Kanso OS 1.0-DEV1 "));
     KernelConsolePrint(String("(%s %d-bit)\n\n"), platformInformation.Name.Pointer, platformInformation.ArchitectureBits);
 
-    CpuSetSupervisorTrapHandler(&KernelSupervisorTrapHandler);
+    //CpuSetSupervisorTrapHandler(&KernelSupervisorTrapHandler);
     BiosSetTimer(CpuReadTime() + 10000000);
     CpuEnableSupervisorInterrupts(CpuInterruptType_Timer);
 

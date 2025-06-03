@@ -10,9 +10,10 @@ if(NOT CMAKE_C_COMPILER OR NOT CMAKE_ASM_COMPILER)
     )
 
     find_program(_CLANG
-        NAMES clang-20
+        NAMES clang-20 clang-19 clang
         HINTS "${_BREW_LLVM_PREFIX}/bin"
               "C:\\Program Files\\LLVM\\bin"
+              "/usr/bin"
         NO_CMAKE_SYSTEM_PATH
     )
 

@@ -20,7 +20,10 @@ typedef enum
     CpuInterruptType_All = 0xFF,
 } CpuInterruptType;
 
-typedef void (*CpuTrapHandler)();
+struct CpuTrapFrame;
+typedef struct CpuTrapFrame CpuTrapFrame;
+
+typedef void (*CpuTrapHandler)(struct CpuTrapFrame*);
 
 uint64_t CpuReadTime();
 uint64_t CpuReadCycle();
@@ -29,6 +32,8 @@ void CpuEnableSupervisorInterrupts(CpuInterruptType types);
 void CpuDisableSupervisorInterrupts(CpuInterruptType types);
 void CpuClearSupervisorPendingInterrupts(CpuInterruptType types);
 void CpuWaitForInterrupt();
+
+uintptr_t CpuTrapFrameGetProgramCounter(const CpuTrapFrame* trapFrame);
 
 
 typedef enum
