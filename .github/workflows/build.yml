@@ -29,7 +29,7 @@ jobs:
 
     - name: Configure & build kanso
       run: |
-        cmake -S kanso --preset riscv64 -B build/riscv64
+        cmake --preset riscv64 -B build/riscv64
         cmake --build build/riscv64
 
     - name: Produce kernel.bin
