@@ -29,20 +29,20 @@ jobs:
 
     - name: Configure & build kanso
       run: |
-        cmake -S kanso --preset riscv64 -B kanso/build/riscv64
-        cmake --build kanso/build/riscv64
+        cmake -S kanso --preset riscv64 -B build/riscv64
+        cmake --build build/riscv64
 
     - name: Produce kernel.bin
       run: |
         riscv64-linux-gnu-objcopy \
           -O binary \
-          kanso/build/riscv64/bin/kernel.elf \
-          kanso/build/riscv64/bin/kernel.bin
+          build/riscv64/bin/kernel.elf \
+          build/riscv64/bin/kernel.bin
 
     - name: Upload kanso artifact
       uses: actions/upload-artifact@v4
       with:
         name: kanso-${{ env.TARGET }}
         path: |
-          kanso/build/riscv64/bin/kernel.elf
-          kanso/build/riscv64/bin/kernel.bin
+          build/riscv64/bin/kernel.elf
+          build/riscv64/bin/kernel.bin
