@@ -1,19 +1,19 @@
-name: Build & publish Star64 image
+name: Build Kernel
 on:
   workflow_dispatch: 
     inputs:
-      target:
-        description: Target board
+      platform:
+        description: Platform
         required: true
-        default: star64
+        default: riscv64
         type: choice
-        options: [star64]
+        options: [riscv64]
 
 jobs:
-  build-kanso:
+  build-kernel:
     runs-on: ubuntu-latest
     env:
-      TARGET: ${{ github.event.inputs.target }}
+      PLATFORM: ${{ github.event.inputs.platform }}
 
     steps:
     - name: Checkout sources
@@ -30,13 +30,14 @@ jobs:
 
     - name: Configure & build kanso
       run: |
-        cmake --preset riscv64 -B build/riscv64
-        cmake --build build/riscv64
+        cmake --preset ${{ env.PLATFORM }} -B build/${{ env.PLATFORM }}
+        cmake --build build/${{ env.PLATFORM }}
 
     - name: Upload kanso artifact
       uses: actions/upload-artifact@v4
       with:
-        name: kanso-${{ env.TARGET }}
+        name: kanso-${{ env.PLATFORM }}
         path: |
-          build/riscv64/bin/kernel.elf
-          build/riscv64/bin/kernel.bin
+          build/${{ env.PLATFORM }}/bin/kernel.elf
+          build/${{ env.PLATFORM }}//bin/kernel.bin
+          build/${{ env.PLATFORM }}//bin/kernel-test.elf
