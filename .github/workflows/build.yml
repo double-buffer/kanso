@@ -21,6 +21,8 @@ jobs:
 
     - name: Install LLVM and Clang
       uses: KyleMayes/install-llvm-action@latest
+      with:
+        version: "20.1.0"
 
     - name: Install CMake
       uses: lukka/get-cmake@latest
