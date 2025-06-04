@@ -33,13 +33,6 @@ jobs:
         cmake --preset riscv64 -B build/riscv64
         cmake --build build/riscv64
 
-    - name: Produce kernel.bin
-      run: |
-        riscv64-linux-gnu-objcopy \
-          -O binary \
-          build/riscv64/bin/kernel.elf \
-          build/riscv64/bin/kernel.bin
-
     - name: Upload kanso artifact
       uses: actions/upload-artifact@v4
       with:
