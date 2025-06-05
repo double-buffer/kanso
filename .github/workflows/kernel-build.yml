@@ -10,7 +10,7 @@ jobs:
   kernel-build:
     runs-on: ubuntu-latest
     env:
-      PLATFORM: ${{ github.event.inputs.platform }}
+      PLATFORM: ${{ inputs.platform }}
 
     steps:
     - name: Checkout sources
