@@ -36,5 +36,5 @@ jobs:
         name: kanso-${{ env.PLATFORM }}
         path: |
           build/${{ env.PLATFORM }}/bin/kernel.elf
-          build/${{ env.PLATFORM }}//bin/kernel.bin
-          build/${{ env.PLATFORM }}//bin/kernel-test.elf
+          build/${{ env.PLATFORM }}/bin/kernel.bin
+          build/${{ env.PLATFORM }}/bin/kernel-test.elf
