@@ -23,7 +23,9 @@ jobs:
         env: true
 
     - name: Install CMake
-      uses: lukka/get-cmake@master
+      uses: lukka/get-cmake@masteruse
+      with:
+        CloudCache: false  
 
     - name: Configure & build kanso
       run: |
