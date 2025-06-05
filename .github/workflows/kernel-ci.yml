@@ -12,6 +12,7 @@ jobs:
       matrix:
         include: ${{ fromJSON(vars.Platforms) }}
     uses: ./.github/workflows/kernel-build.yml
+    secrets: inherit
     with:
       platform: ${{ matrix.platform }}
 
