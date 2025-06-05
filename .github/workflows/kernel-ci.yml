@@ -7,7 +7,7 @@ on:
   workflow_dispatch: 
 
 jobs:
-  kernel-ci:
+  kernel-build:
     strategy:
       matrix:
         include: ${{ fromJSON(vars.Platforms) }}

@@ -14,7 +14,7 @@ jobs:
 
     steps:
     - name: Checkout sources
-      uses: actions/checkout@latest
+      uses: actions/checkout@master
 
     - name: Install LLVM and Clang
       uses: KyleMayes/install-llvm-action@v2
@@ -23,7 +23,7 @@ jobs:
         env: true
 
     - name: Install CMake
-      uses: lukka/get-cmake@latest
+      uses: lukka/get-cmake@master
 
     - name: Configure & build kanso
       run: |
@@ -31,7 +31,7 @@ jobs:
         cmake --build build/${{ env.PLATFORM }}
 
     - name: Upload kanso artifact
-      uses: actions/upload-artifact@latest
+      uses: actions/upload-artifact@master
       with:
         name: kanso-${{ env.PLATFORM }}
         path: |
