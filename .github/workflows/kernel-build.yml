@@ -1,23 +1,20 @@
-name: Build Kernel
+name: Kernel-Build
 on:
-  workflow_dispatch: 
+  workflow_call:
     inputs:
       platform:
-        description: Platform
         required: true
-        default: riscv64
-        type: choice
-        options: [riscv64]
+        type: string
 
 jobs:
-  build-kernel:
+  kernel-build:
     runs-on: ubuntu-latest
     env:
       PLATFORM: ${{ github.event.inputs.platform }}
 
     steps:
     - name: Checkout sources
-      uses: actions/checkout@v4
+      uses: actions/checkout@latest
 
     - name: Install LLVM and Clang
       uses: KyleMayes/install-llvm-action@v2
@@ -34,7 +31,7 @@ jobs:
         cmake --build build/${{ env.PLATFORM }}
 
     - name: Upload kanso artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@latest
       with:
         name: kanso-${{ env.PLATFORM }}
         path: |

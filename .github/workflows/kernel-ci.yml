@@ -1,0 +1,17 @@
+name: Kernel-CI
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch: 
+
+jobs:
+  kernel-ci:
+    strategy:
+      matrix:
+        include: ${{ fromJSON(vars.Platforms) }}
+      uses: ./.github/workflows/kernel-build.yml
+      with:
+          platform: ${{ matrix.platform }}
+
