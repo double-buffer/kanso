@@ -28,8 +28,7 @@ jobs:
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3
       with:
-        platforms: 
-          - ${{ env.PLATFORM }}
+        platforms: ${{ env.PLATFORM }}
 
     - name: Configure & build kanso
       run: |
