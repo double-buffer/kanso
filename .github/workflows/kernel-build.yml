@@ -51,7 +51,7 @@ jobs:
     - name: Upload Kernel binaries
       uses: actions/upload-artifact@v4
       with:
-        name: kanso-${{ env.PLATFORM }}
+        name: kernel-${{ env.PLATFORM }}
         path: |
           build/${{ env.PLATFORM }}/bin/kernel.elf
           build/${{ env.PLATFORM }}/bin/kernel.bin
