@@ -12,15 +12,6 @@ jobs:
     with:
       platform: ${{ matrix.Id }}
 
-  release:
-    strategy:
-      matrix:
-        include: ${{ fromJSON(vars.ReleaseTargets) }}
-    uses: ./.github/workflows/release-${{ matrix.Id }}.yml
-    secrets: inherit
-    with:
-      releaseTargetId: ${{ matrix.Id }}
-
   release-pine64_star64:
     needs: kernel-build
     uses: ./.github/workflows/release-pine64_star64.yml
