@@ -7,7 +7,25 @@ on:
   workflow_dispatch: 
 
 jobs:
+  filter:
+    runs-on: ubuntu-latest
+    outputs:
+      kernel: ${{ steps.filter.outputs.kernel }}
+      common: ${{ steps.filter.outputs.common }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            kernel:
+              - 'src/Kernel/**'
+            common:
+              - 'src/Common/**'
+
   kernel-build:
+    needs: filter
+    if: ${{ needs.filter.outputs.kernel == 'true' || needs.filter.outputs.common == 'true' }}
     strategy:
       matrix:
         include: ${{ fromJSON(vars.Platforms) }}

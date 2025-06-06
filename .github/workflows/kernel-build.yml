@@ -7,7 +7,7 @@ on:
         type: string
 
 jobs:
-  kernel-build:
+  build:
     runs-on: ubuntu-latest
     env:
       PLATFORM: ${{ inputs.platform }}
@@ -25,16 +25,34 @@ jobs:
     - name: Install CMake
       uses: lukka/get-cmake@latest
 
-    - name: Configure & build kanso
+    - name: Install QEMU
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y qemu-system-${{ env.PLATFORM }}
+        curl -LO https://github.com/qemu/qemu/raw/master/pc-bios/opensbi-${{ env.PLATFORM }}-generic-fw_dynamic.bin
+
+    - name: Build Kernel
       run: |
         cmake --preset ${{ env.PLATFORM }} -B build/${{ env.PLATFORM }}
         cmake --build build/${{ env.PLATFORM }}
 
-    - name: Upload kanso artifact
+    - name: Test Kernel
+      run: |
+        set -euo pipefail
+
+        (
+          qemu-system-${{ env.PLATFORM }} \
+            -machine virt \
+            -kernel build/${{ env.PLATFORM }}/bin/kernel-test.elf \
+            -serial stdio -monitor none -nographic -no-reboot
+        ) 2>&1 | tee qemu.log
+
+        ! grep -q "\[  FAILED  ]" qemu.log
+
+    - name: Upload Kernel binaries
       uses: actions/upload-artifact@v4
       with:
-        name: kanso-${{ env.PLATFORM }}
+        name: kernel-${{ env.PLATFORM }}
         path: |
           build/${{ env.PLATFORM }}/bin/kernel.elf
           build/${{ env.PLATFORM }}/bin/kernel.bin
-          build/${{ env.PLATFORM }}/bin/kernel-test.elf
