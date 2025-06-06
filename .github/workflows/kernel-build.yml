@@ -10,11 +10,11 @@ jobs:
   kernel-build:
     runs-on: ubuntu-latest
     env:
-      PLATFORM: ${{ github.event.inputs.platform }}
+      PLATFORM: ${{ inputs.platform }}
 
     steps:
     - name: Checkout sources
-      uses: actions/checkout@latest
+      uses: actions/checkout@v4
 
     - name: Install LLVM and Clang
       uses: KyleMayes/install-llvm-action@v2
@@ -31,10 +31,10 @@ jobs:
         cmake --build build/${{ env.PLATFORM }}
 
     - name: Upload kanso artifact
-      uses: actions/upload-artifact@latest
+      uses: actions/upload-artifact@v4
       with:
         name: kanso-${{ env.PLATFORM }}
         path: |
           build/${{ env.PLATFORM }}/bin/kernel.elf
-          build/${{ env.PLATFORM }}//bin/kernel.bin
-          build/${{ env.PLATFORM }}//bin/kernel-test.elf
+          build/${{ env.PLATFORM }}/bin/kernel.bin
+          build/${{ env.PLATFORM }}/bin/kernel-test.elf
