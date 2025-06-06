@@ -12,3 +12,11 @@ jobs:
     with:
       platform: ${{ matrix.platform }}
 
+  release:
+    strategy:
+      matrix:
+        include: ${{ fromJSON(vars.ReleaseTargets) }}
+    uses: ./.github/workflows/releases/release-${{ matrix.Id }}
+    secrets: inherit
+    with:
+      releaseTargetId: ${{ matrix.Id }}
