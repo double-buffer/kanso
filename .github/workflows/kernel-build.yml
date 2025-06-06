@@ -43,7 +43,6 @@ jobs:
         (
           qemu-system-${{ env.PLATFORM }} \
             -machine virt \
-            -bios opensbi-${{ env.PLATFORM }}-generic-fw_dynamic.bin
             -kernel build/${{ env.PLATFORM }}/bin/kernel-test.elf \
             -serial stdio -monitor none -nographic -no-reboot
         ) 2>&1 | tee qemu.log
