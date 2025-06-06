@@ -36,9 +36,13 @@ jobs:
         cmake --build build/${{ env.PLATFORM }}
 
     - name: Test
-      run: qemu-system-${{ env.PLATFORM }} -machine virt -kernel build/${{ env.PLATFORM }}/bin/kernel-test.elf -serial stdio -monitor none -nographic -no-reboot
+      run: |
+        set -o pipefail
+        qemu-system-${{ env.PLATFORM }} -machine virt -kernel build/${{ env.PLATFORM }}/bin/kernel-test.elf -serial stdio -monitor none -nographic -no-reboot
+        | tee qemu.log
+        ! grep -q "\[  FAILED  ]" qemu.log
 
-    - name: Upload kanso artifact
+    - name: Upload Kernel binaries
       uses: actions/upload-artifact@v4
       with:
         name: kanso-${{ env.PLATFORM }}
