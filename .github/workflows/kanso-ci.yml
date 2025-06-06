@@ -28,7 +28,7 @@ jobs:
     if: ${{ needs.filter.outputs.kernel == 'true' || needs.filter.outputs.common == 'true' }}
     strategy:
       matrix:
-        include: ${{ fromJSON(vars.Platforms) }}
+        Platform: [ "riscv64", "riscv32" ]
     uses: ./.github/workflows/kernel-build.yml
     secrets: inherit
     with:
