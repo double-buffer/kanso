@@ -35,11 +35,17 @@ jobs:
         cmake --preset ${{ env.PLATFORM }} -B build/${{ env.PLATFORM }}
         cmake --build build/${{ env.PLATFORM }}
 
-    - name: Test
+    - name: Test Kernel
       run: |
-        set -o pipefail
-        qemu-system-${{ env.PLATFORM }} -machine virt -kernel build/${{ env.PLATFORM }}/bin/kernel-test.elf -serial stdio -monitor none -nographic -no-reboot
-        | tee qemu.log
+        set -euo pipefail
+
+        (
+          qemu-system-${{ env.PLATFORM }} \
+            -machine virt \
+            -kernel build/${{ env.PLATFORM }}/bin/kernel-test.elf \
+            -serial stdio -monitor none -nographic -no-reboot
+        ) 2>&1 | tee qemu.log
+
         ! grep -q "\[  FAILED  ]" qemu.log
 
     - name: Upload Kernel binaries
