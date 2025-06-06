@@ -63,7 +63,6 @@ inline uint64_t CpuReadCycle()
 #else
 inline uint64_t CpuReadTime()
 {
-    return 0;
     auto result = 0UL;
     __asm__ volatile("rdtime %0" : "=r"(result));
     return result;
