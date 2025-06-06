@@ -19,9 +19,9 @@ jobs:
         with:
           filters: |
             kernel:
-              - '**/src/kernel/**'
+              - 'src/Kernel/**'
             common:
-              - '**/src/common/**'
+              - 'src/Common/**'
 
   kernel-build:
     needs: filter
