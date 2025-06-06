@@ -10,13 +10,13 @@ jobs:
     uses: ./.github/workflows/kernel-build.yml
     secrets: inherit
     with:
-      platform: ${{ matrix.platform }}
+      platform: ${{ matrix.Id }}
 
   release:
     strategy:
       matrix:
         include: ${{ fromJSON(vars.ReleaseTargets) }}
-    uses: ./.github/workflows/release-${{ matrix.Id }}
+    uses: ./.github/workflows/release-${{ matrix.Id }}.yml
     secrets: inherit
     with:
       releaseTargetId: ${{ matrix.Id }}
