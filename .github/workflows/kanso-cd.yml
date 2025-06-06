@@ -10,7 +10,7 @@ jobs:
     uses: ./.github/workflows/kernel-build.yml
     secrets: inherit
     with:
-      platform: ${{ matrix.Id }}
+      platform: ${{ matrix.Platform }}
 
   release-pine64_star64:
     needs: kernel-build
