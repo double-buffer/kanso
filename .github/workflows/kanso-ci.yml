@@ -32,5 +32,5 @@ jobs:
     uses: ./.github/workflows/kernel-build.yml
     secrets: inherit
     with:
-      platform: ${{ matrix.Id }}
+      platform: ${{ matrix.Platform }}
 
