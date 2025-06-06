@@ -26,9 +26,9 @@ jobs:
       uses: lukka/get-cmake@latest
 
     - name: Install QEMU
-      uses: docker/setup-qemu-action@v3
-      with:
-        platforms: ${{ env.PLATFORM }}
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y qemu-system-${{ env.PLATFORM }}
 
     - name: Build Kernel
       run: |
