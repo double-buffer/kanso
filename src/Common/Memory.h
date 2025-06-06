@@ -56,6 +56,8 @@ DefineSpan(Uint64, uint64_t)
 
 #define SpanSliceFrom(span, offset) SpanSlice((span), (offset), (span).Length - (offset))
 
+// TODO: SpanGetItem?
+
 void MemorySetByte(size_t stride, void* destination, size_t destinationLength, const void* value);
 void MemorySetDefault(size_t stride, void* destination, size_t destinationLength, const void* value);
 
@@ -92,6 +94,7 @@ void MemoryCopyDefault(size_t stride, void* destination, size_t destinationLengt
         _ASSERT_READONLY_SPAN(source);         \
         _MemoryCopyDispatch((destination), (source));                             \
     } while (0)
+
 
 
 // TODO: Move that to the standard library
