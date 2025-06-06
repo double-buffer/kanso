@@ -7,7 +7,7 @@ on:
         type: string
 
 jobs:
-  kernel-build:
+  build:
     runs-on: ubuntu-latest
     env:
       PLATFORM: ${{ inputs.platform }}
@@ -25,10 +25,19 @@ jobs:
     - name: Install CMake
       uses: lukka/get-cmake@latest
 
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+      with:
+        platforms: 
+          - ${{ env.PLATFORM }}
+
     - name: Configure & build kanso
       run: |
         cmake --preset ${{ env.PLATFORM }} -B build/${{ env.PLATFORM }}
         cmake --build build/${{ env.PLATFORM }}
+
+    - name: Test
+      run: echo Test
 
     - name: Upload kanso artifact
       uses: actions/upload-artifact@v4
@@ -37,4 +46,3 @@ jobs:
         path: |
           build/${{ env.PLATFORM }}/bin/kernel.elf
           build/${{ env.PLATFORM }}/bin/kernel.bin
-          build/${{ env.PLATFORM }}/bin/kernel-test.elf
