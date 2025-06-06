@@ -6,7 +6,7 @@ jobs:
   kernel-build:
     strategy:
       matrix:
-        include: ${{ fromJSON(vars.Platforms) }}
+        Platform: [ "riscv64", "riscv32" ]
     uses: ./.github/workflows/kernel-build.yml
     secrets: inherit
     with:
@@ -20,3 +20,8 @@ jobs:
     secrets: inherit
     with:
       releaseTargetId: ${{ matrix.Id }}
+
+  release-pine64_star64:
+    needs: kernel-build
+    uses: ./.github/workflows/release-pine64_star64.yml
+    secrets: inherit
