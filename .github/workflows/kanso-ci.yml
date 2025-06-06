@@ -1,4 +1,4 @@
-name: Kernel-CI
+name: Kanso-CI
 on:
   push:
     branches:
@@ -7,11 +7,12 @@ on:
   workflow_dispatch: 
 
 jobs:
-  kernel-ci:
+  kernel-build:
     strategy:
       matrix:
         include: ${{ fromJSON(vars.Platforms) }}
-      uses: ./.github/workflows/kernel-build.yml
-      with:
-          platform: ${{ matrix.platform }}
+    uses: ./.github/workflows/kernel-build.yml
+    secrets: inherit
+    with:
+      platform: ${{ matrix.platform }}
 
