@@ -28,7 +28,8 @@ jobs:
     - name: Install QEMU
       run: |
         sudo apt-get update
-        sudo apt-get install -y qemu-system-${{ env.PLATFORM }} opensbi
+        sudo apt-get install -y qemu-system-${{ env.PLATFORM }}
+        curl -LO https://github.com/qemu/qemu/raw/master/pc-bios/opensbi-${{ env.PLATFORM }}-generic-fw_dynamic.bin
 
     - name: Build Kernel
       run: |
@@ -42,7 +43,7 @@ jobs:
         (
           qemu-system-${{ env.PLATFORM }} \
             -machine virt \
-            -bios /usr/lib/${{ env.PLATFORM }}-gnu/opensbi/generic/fw_dynamic.bin
+            -bios opensbi-${{ env.PLATFORM }}-generic-fw_dynamic.bin
             -kernel build/${{ env.PLATFORM }}/bin/kernel-test.elf \
             -serial stdio -monitor none -nographic -no-reboot
         ) 2>&1 | tee qemu.log
