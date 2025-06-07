@@ -3,6 +3,7 @@
 #include "String.h"
 #include "KernelConsole.h"
 #include "Platform.h"
+#include "Version.h"
 
 const char* TEST_CONSOLE_RESET = "\x1b[0m";
 const char* TEST_CONSOLE_GREEN = "\x1b[32m";
@@ -44,6 +45,11 @@ void KernelTestHandler(TestRunState state, ReadOnlySpanChar message, ...)
 
 void KernelMain()
 {
+    auto platformInformation = PlatformGetInformation();
+
+    KernelConsolePrint(String("\n\nKanso OS Kernel Tests %s "), KANSO_VERSION_FULL);
+    KernelConsolePrint(String("(%s %d-bit)\n\n"), platformInformation.Name.Pointer, platformInformation.ArchitectureBits);
+
     TestRun(KernelTestHandler);
     BiosReset(BiosResetType_Shutdown, BiosResetReason_None);
 }
