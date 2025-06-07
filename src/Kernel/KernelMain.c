@@ -1,6 +1,7 @@
 #include "Types.h"
 #include "String.h"
 #include "Memory.h"
+#include "Version.h"
 #include "Platform.h"
 #include "KernelConsole.h"
 #include "Kernel.h"
@@ -30,7 +31,7 @@ void KernelMain()
     auto platformInformation = PlatformGetInformation();
 
     KernelConsolePrint(String("\n\n\x1b[36m%s\x1b[0m\n"), KernelLogo);
-    KernelConsolePrint(String("Kanso OS 1.0-DEV1 - GitHubActions "));
+    KernelConsolePrint(String("Kanso OS %s "), KANSO_VERSION_FULL);
     KernelConsolePrint(String("(%s %d-bit)\n\n"), platformInformation.Name.Pointer, platformInformation.ArchitectureBits);
 
     //CpuSetSupervisorTrapHandler(&KernelSupervisorTrapHandler);
