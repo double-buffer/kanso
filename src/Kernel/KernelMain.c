@@ -30,7 +30,7 @@ void KernelMain()
     auto platformInformation = PlatformGetInformation();
 
     KernelConsolePrint(String("\n\n\x1b[36m%s\x1b[0m\n"), KernelLogo);
-    KernelConsolePrint(String("Kanso OS 1.0-DEV1 "));
+    KernelConsolePrint(String("Kanso OS 1.0-DEV1 - GitHubActions "));
     KernelConsolePrint(String("(%s %d-bit)\n\n"), platformInformation.Name.Pointer, platformInformation.ArchitectureBits);
 
     //CpuSetSupervisorTrapHandler(&KernelSupervisorTrapHandler);
