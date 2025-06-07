@@ -51,8 +51,8 @@ jobs:
       run: |
         make -C opensbi \
           PLATFORM=generic \
-          FW_PAYLOAD_PATH=kanso_kernel/kernel.bin \
-          FW_FDT_PATH=u-boot/dts/upstream/src/riscv/starfive/jh7110-pine64-star64.dtb \
+          FW_PAYLOAD_PATH=../kanso_kernel/kernel.bin \
+          FW_FDT_PATH=../u-boot/dts/upstream/src/riscv/starfive/jh7110-pine64-star64.dtb \
           FW_TEXT_START=0x40000000
 
     - name: Create Star64 FIT image
