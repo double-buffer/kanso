@@ -6,7 +6,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      RELEASE_TARGET_ID: ${{ inputs.releaseTargetId }}
       CROSS_COMPILE: riscv64-linux-gnu-
 
     steps:
@@ -37,4 +36,35 @@ jobs:
     - name: Clone StarFive utilities
       run: git clone https://github.com/starfive-tech/soft_3rdpart.git starfive_utils
 
- 
+    - name: Build U-Boot SPL and DTBs
+      run: |
+        make -C u-boot starfive_visionfive2_defconfig
+        make -C u-boot -j$(nproc) spl/u-boot-spl.bin
+        make -C u-boot -j$(nproc) dtbs
+
+    - name: Pack SPL image with StarFive spl_tool
+      run: | 
+        make -C starfive_utils/spl_tool
+        starfive_utils/spl_tool/spl_tool -c -f u-boot/spl/u-boot-spl.bin
+
+    - name: Build OpenSBI firmware
+      run: |
+        make -C opensbi \
+          PLATFORM=generic \
+          FW_PAYLOAD_PATH=kanso_kernel/kernel.bin \
+          FW_FDT_PATH=u-boot/dts/upstream/src/riscv/starfive/jh7110-pine64-star64.dtb \
+          FW_TEXT_START=0x40000000
+
+    - name: Create Star64 FIT image
+      run: mkimage -f .github/workflows/releases/pine64_star64/star64-uboot-fit-image.its -A riscv -O u-boot -T firmware kernel.img
+
+    - name: Run genimage
+      run: genimage --config .github/workflows/releases/pine64_star64/genimage.cfg --inputpath . --tmppath temp
+
+    - name: Upload packaged Star64 image
+      uses: actions/upload-artifact@v4
+      with:
+        name: star64-image
+        path: |
+          images/**        # genimage output
+          kernel.img       # FIT firmware
