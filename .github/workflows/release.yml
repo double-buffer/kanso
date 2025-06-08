@@ -20,13 +20,12 @@ jobs:
       shell: bash
       run: |
         mapfile -t FILES < <(find artefacts -type f \( \
-                               -iname '*.img'  -o \
-                               -iname '*.elf'  -o \
-                               -iname '*.bin'  -o \
-                               -iname '*.tar.*' \))
-        if [[ ${#FILES[@]} -eq 0 ]]; then
-          echo "::error::No artefacts to release"; exit 1
-        fi
+                               -iname 'kanso_*.img' -o \
+                               -iname 'kanso_*.bin' -o \
+                               -iname 'kanso_*.elf' -o \
+                               -iname 'kanso_*.tar.*' \
+                             \))
+        [[ ${#FILES[@]} -gt 0 ]] || { echo "::error::No kanso_ artefacts"; exit 1; }
         printf '%s\n' "${FILES[@]}"
         {
           echo 'list<<EOF'
@@ -56,15 +55,13 @@ jobs:
       shell: bash
       run: |
         VERSION="${{ steps.version.outputs.next }}"
-        mkdir renamed
+        mkdir -p renamed
         NEWFILES=()
         while IFS= read -r file; do
-          base=$(basename "$file")
-          dir=$(dirname  "$file")      # not used, but kept for clarity
-          ext="${base##*.}"
-          stem="${base%.*}"
-          # handle files without extension
-          if [[ "$base" == "$ext" ]]; then
+          base=$(basename "$file")                # kanso_xyz.ext
+          ext="${base##*.}"                       # ext or same as base if no dot
+          stem="${base%.*}"                       # kanso_xyz  (even if no dot)
+          if [[ "$base" == "$ext" ]]; then        # no extension case
             new="renamed/${stem}_${VERSION}"
           else
             new="renamed/${stem}_${VERSION}.${ext}"
@@ -96,7 +93,7 @@ jobs:
       uses: softprops/action-gh-release@v2
       with:
         tag_name:   ${{ steps.version.outputs.next }}
-        name:       "Nightly ${{ steps.version.outputs.next }}"
+        name:       "Kanso ${{ steps.version.outputs.next }}"
         prerelease: true
         body: |
           **Automated pre-release build**
