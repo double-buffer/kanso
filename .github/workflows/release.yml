@@ -51,6 +51,35 @@ jobs:
         git tag "$NEXT_TAG"
         git push origin "$NEXT_TAG"
 
+    - name: Append version to filenames
+      id: renamed
+      shell: bash
+      run: |
+        VERSION="${{ steps.version.outputs.next }}"
+        mkdir renamed
+        NEWFILES=()
+        while IFS= read -r file; do
+          base=$(basename "$file")
+          dir=$(dirname  "$file")      # not used, but kept for clarity
+          ext="${base##*.}"
+          stem="${base%.*}"
+          # handle files without extension
+          if [[ "$base" == "$ext" ]]; then
+            new="renamed/${stem}_${VERSION}"
+          else
+            new="renamed/${stem}_${VERSION}.${ext}"
+          fi
+          cp "$file" "$new"
+          NEWFILES+=("$new")
+        done <<< "${{ steps.collect.outputs.list }}"
+
+        printf '%s\n' "${NEWFILES[@]}"
+        {
+          echo 'list<<EOF'
+          printf '%s\n' "${NEWFILES[@]}"
+          echo 'EOF'
+        } >>"$GITHUB_OUTPUT"
+
     - name: Generate release notes
       id: notes
       shell: bash
