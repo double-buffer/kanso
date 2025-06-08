@@ -58,10 +58,10 @@ jobs:
         mkdir -p renamed
         NEWFILES=()
         while IFS= read -r file; do
-          base=$(basename "$file")                # kanso_xyz.ext
-          ext="${base##*.}"                       # ext or same as base if no dot
-          stem="${base%.*}"                       # kanso_xyz  (even if no dot)
-          if [[ "$base" == "$ext" ]]; then        # no extension case
+          base=$(basename "$file")
+          ext="${base##*.}"
+          stem="${base%.*}"
+          if [[ "$base" == "$ext" ]]; then
             new="renamed/${stem}_${VERSION}"
           else
             new="renamed/${stem}_${VERSION}.${ext}"
