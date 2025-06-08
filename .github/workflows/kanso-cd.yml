@@ -16,3 +16,8 @@ jobs:
     needs: kernel-build
     uses: ./.github/workflows/release-pine64_star64.yml
     secrets: inherit
+
+  release:
+    needs: release-pine64_star64
+    uses: ./.github/workflows/release.yml
+    secrets: inherit

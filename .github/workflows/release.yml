@@ -1,0 +1,104 @@
+name: Release
+on:
+  workflow_call:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+      with: { fetch-depth: 0 }
+
+    - name: Download artefacts
+      uses: actions/download-artifact@v4
+      with:
+        path: artefacts
+
+    - name: Collect publishable files
+      id: collect
+      shell: bash
+      run: |
+        mapfile -t FILES < <(find artefacts -type f \( \
+                               -iname 'kanso_*.img' -o \
+                               -iname 'kanso_*.bin' -o \
+                               -iname 'kanso_*.elf' -o \
+                               -iname 'kanso_*.tar.*' \
+                             \))
+        [[ ${#FILES[@]} -gt 0 ]] || { echo "::error::No kanso_ artefacts"; exit 1; }
+        printf '%s\n' "${FILES[@]}"
+        {
+          echo 'list<<EOF'
+          printf '%s\n' "${FILES[@]}"
+          echo 'EOF'
+        } >>"$GITHUB_OUTPUT"
+
+    - name: Bump tag
+      id: version
+      shell: bash
+      run: |
+        LAST=$(git describe --tags --abbrev=0 2>/dev/null || echo "0.0.0-DEV1")
+        IFS='.-' read -r MAJOR MINOR BUILD LABEL <<<"$LAST"
+        : "${LABEL:=DEV1}"
+        NEXT_BUILD=$((BUILD + 1))
+        NEXT_TAG="${MAJOR}.${MINOR}.${NEXT_BUILD}-${LABEL}"
+        echo "last=$LAST" >>"$GITHUB_OUTPUT"
+        echo "next=$NEXT_TAG" >>"$GITHUB_OUTPUT"
+
+        git config --global user.name  "github-actions"
+        git config --global user.email "actions@github.com"
+        git tag "$NEXT_TAG"
+        git push origin "$NEXT_TAG"
+
+    - name: Append version to filenames
+      id: renamed
+      shell: bash
+      run: |
+        VERSION="${{ steps.version.outputs.next }}"
+        mkdir -p renamed
+        NEWFILES=()
+        while IFS= read -r file; do
+          base=$(basename "$file")                # kanso_xyz.ext
+          ext="${base##*.}"                       # ext or same as base if no dot
+          stem="${base%.*}"                       # kanso_xyz  (even if no dot)
+          if [[ "$base" == "$ext" ]]; then        # no extension case
+            new="renamed/${stem}_${VERSION}"
+          else
+            new="renamed/${stem}_${VERSION}.${ext}"
+          fi
+          cp "$file" "$new"
+          NEWFILES+=("$new")
+        done <<< "${{ steps.collect.outputs.list }}"
+
+        printf '%s\n' "${NEWFILES[@]}"
+        {
+          echo 'list<<EOF'
+          printf '%s\n' "${NEWFILES[@]}"
+          echo 'EOF'
+        } >>"$GITHUB_OUTPUT"
+
+    - name: Generate release notes
+      id: notes
+      shell: bash
+      run: |
+        RANGE="${{ steps.version.outputs.last }}..HEAD"
+        if ! git rev-parse "${{ steps.version.outputs.last }}" &>/dev/null; then
+          RANGE="HEAD"
+        fi
+        LOG=$(git log $RANGE --pretty=format:"- %s (%h)" --no-merges \
+               | grep -vE 'Merge pull request' || true)
+        printf 'notes<<EOF\n%s\nEOF\n' "${LOG:-No code changes}" >>"$GITHUB_OUTPUT"
+
+    - name: Publish GitHub pre-release
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name:   ${{ steps.version.outputs.next }}
+        name:       "Kanso ${{ steps.version.outputs.next }}"
+        prerelease: true
+        body: |
+          **Automated pre-release build**
+
+          Changes since `${{ steps.version.outputs.last }}`:
+
+          ${{ steps.notes.outputs.notes }}
+        files: ${{ steps.collect.outputs.list }}
