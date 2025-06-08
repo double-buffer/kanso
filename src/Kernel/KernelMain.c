@@ -34,7 +34,7 @@ void KernelMain()
     KernelConsolePrint(String("Kanso OS %s "), KANSO_VERSION_FULL);
     KernelConsolePrint(String("(%s %d-bit)\n\n"), platformInformation.Name.Pointer, platformInformation.ArchitectureBits);
 
-    //CpuSetSupervisorTrapHandler(&KernelSupervisorTrapHandler);
+    CpuSetSupervisorTrapHandler(&KernelSupervisorTrapHandler);
     BiosSetTimer(CpuReadTime() + 10000000);
     CpuEnableSupervisorInterrupts(CpuInterruptType_Timer);
 

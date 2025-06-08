@@ -35,3 +35,5 @@ Test(Cpu, CpuReadCycle)
     TestAssertNotEquals(0, cycle2);
     TestAssertGreaterThan(cycle2, cycle1);
 }
+
+// TODO: Next Supervisor trap entry

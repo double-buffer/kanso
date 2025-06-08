@@ -15,12 +15,12 @@ jobs:
     with:
       platform: ${{ matrix.Platform }}
 
-  release-pine64_star64:
+  release-riscv64_pine64_star64:
     needs: kernel-build
-    uses: ./.github/workflows/release-pine64_star64.yml
+    uses: ./.github/workflows/release-riscv64_pine64_star64.yml
     secrets: inherit
 
   release:
-    needs: release-pine64_star64
+    needs: release-riscv64_pine64_star64
     uses: ./.github/workflows/release.yml
     secrets: inherit
