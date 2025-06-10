@@ -20,7 +20,8 @@
 
 
 .macro save_general_purpose_registers
-    addi  sp, sp, -(31 * PTR_SIZE)
+    addi  sp, sp, -32 * PTR_SIZE
+
     save_pointer  x1, 0 * PTR_SIZE(sp)
     save_pointer  x2, 1 * PTR_SIZE(sp)
     save_pointer  x3, 2 * PTR_SIZE(sp)
