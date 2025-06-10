@@ -19,7 +19,7 @@ void KernelFailureCore(ReadOnlySpanChar file, uint32_t line, ReadOnlySpanChar me
 
     va_end(vargs);
     
-    CpuDisableSupervisorInterrupts(CpuInterruptType_All);
+    CpuDisableInterrupts(CpuInterruptType_All);
 
     while (true) 
     { 

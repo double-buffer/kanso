@@ -8,6 +8,8 @@ struct CpuTrapFrame
 
 extern void supervisor_trap_entry();
 
+CpuTrapHandler globalCpuTrapHandler;
+
 uintptr_t ComputeCpuInterruptMask(CpuInterruptType types)
 {
     auto mask = 0;
@@ -76,16 +78,25 @@ inline uint64_t CpuReadCycle()
 }
 #endif
 
-inline void CpuSetSupervisorTrapHandler(CpuTrapHandler trapHandler)
+inline void CpuSetTrapHandler(CpuTrapHandler trapHandler)
 {
-    __asm__ volatile(
-      "csrw stvec, %0\n"
-      "csrsi sstatus, 2" // TODO: Confirm the sstatus flag
-      : 
-      : "r" (supervisor_trap_entry));
+    globalCpuTrapHandler = trapHandler;
+
+    if (trapHandler)
+    {
+        __asm__ volatile(
+          "csrw stvec, %0\n"
+          "csrsi sstatus, 2"
+          : 
+          : "r" (supervisor_trap_entry));
+    }
+    else
+    {
+        __asm__ volatile("csrsi sstatus, 0");
+    }
 }
 
-inline void CpuEnableSupervisorInterrupts(CpuInterruptType types)
+inline void CpuEnableInterrupts(CpuInterruptType types)
 {
     auto mask = ComputeCpuInterruptMask(types);
 
@@ -97,7 +108,7 @@ inline void CpuEnableSupervisorInterrupts(CpuInterruptType types)
     );
 }
 
-inline void CpuDisableSupervisorInterrupts(CpuInterruptType types)
+inline void CpuDisableInterrupts(CpuInterruptType types)
 {
     auto mask = ComputeCpuInterruptMask(types);
 
@@ -109,7 +120,7 @@ inline void CpuDisableSupervisorInterrupts(CpuInterruptType types)
     );
 }
 
-inline void CpuClearSupervisorPendingInterrupts(CpuInterruptType types)
+inline void CpuClearPendingInterrupts(CpuInterruptType types)
 {
     auto mask = ComputeCpuInterruptMask(types);
 

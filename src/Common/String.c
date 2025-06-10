@@ -103,7 +103,7 @@ void StringFormatVargs(SpanChar* destination, ReadOnlySpanChar message, va_list 
                     destination->Pointer[length++] = '0';
                     destination->Pointer[length++] = 'x';
 
-                    for (int64_t i = 15; i >= 0; i--) 
+                    for (int64_t i = (sizeof(uintptr_t) * 2) - 1; i >= 0; i--) 
                     {
                         unsigned nibble = (hexaArgument >> (i * 4)) & 0xf;
                         destination->Pointer[length++] = "0123456789abcdef"[nibble];

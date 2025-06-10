@@ -12,16 +12,14 @@ const char KernelLogo[] =
     ,'\0'
 };
 
-__attribute__((interrupt("supervisor")))
-__attribute__((section(".text.interrupt")))
-void KernelSupervisorTrapHandler(CpuTrapFrame* trapFrame)
+void KernelTrapHandler(CpuTrapFrame* trapFrame)
 {
     auto programCounter = CpuTrapFrameGetProgramCounter(trapFrame);
 
-    CpuClearSupervisorPendingInterrupts(CpuInterruptType_Timer);
-    KernelConsolePrint(String("Kernel trap handler: %d (PC=%d).\n"), CpuReadTime(), programCounter);
+    CpuClearPendingInterrupts(CpuInterruptType_Timer);
+    KernelConsolePrint(String("Kernel trap handler: %d (PC=%x).\n"), CpuReadTime(), programCounter);
 
-    //CpuDisableSupervisorInterrupts(CpuInterruptType_Timer);
+    //CpuDisableInterrupts(CpuInterruptType_Timer);
     //SbiSetTimer((uint64_t)-1);
     BiosSetTimer(CpuReadTime() + 10000000);
 }
@@ -34,9 +32,9 @@ void KernelMain()
     KernelConsolePrint(String("Kanso OS %s "), KANSO_VERSION_FULL);
     KernelConsolePrint(String("(%s %d-bit)\n\n"), platformInformation.Name.Pointer, platformInformation.ArchitectureBits);
 
-    CpuSetSupervisorTrapHandler(&KernelSupervisorTrapHandler);
+    CpuSetTrapHandler(KernelTrapHandler);
     BiosSetTimer(CpuReadTime() + 10000000);
-    CpuEnableSupervisorInterrupts(CpuInterruptType_Timer);
+    CpuEnableInterrupts(CpuInterruptType_Timer);
 
     while (true)
     {

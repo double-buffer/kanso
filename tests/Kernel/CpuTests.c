@@ -36,4 +36,22 @@ Test(Cpu, CpuReadCycle)
     TestAssertGreaterThan(cycle2, cycle1);
 }
 
-// TODO: Next Supervisor trap entry
+void TestTrapHandler(CpuTrapFrame* trapFrame)
+{
+    auto programCounter = CpuTrapFrameGetProgramCounter(trapFrame);
+    KernelConsolePrint(String("Test Trap %x\n"), programCounter);
+    TestAssertEquals(0, programCounter);
+
+    CpuClearPendingInterrupts(CpuInterruptType_Timer);
+    CpuDisableInterrupts(CpuInterruptType_All);
+}
+
+Test(Cpu, CpuTrapHandler)
+{
+    // Arrange
+    CpuSetTrapHandler(TestTrapHandler);
+    CpuEnableInterrupts(CpuInterruptType_Timer);
+    BiosSetTimer(CpuReadTime());
+    KernelConsolePrint(String("Test finieshed \n"));
+    CpuSetTrapHandler(nullptr);
+}

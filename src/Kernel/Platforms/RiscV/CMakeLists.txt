@@ -1,4 +1,4 @@
-add_executable(Kernel UnityBuild.c Boot.S SupervisorTrapEntry.S)
+add_executable(Kernel UnityBuild.c Boot.S KernelTrapEntry.S)
 
 target_link_libraries(Kernel PRIVATE Common)
 
@@ -21,7 +21,7 @@ add_custom_command(TARGET Kernel POST_BUILD
 )
 
 
-add_executable(KernelTest UnityBuild.c Boot.S SupervisorTrapEntry.S)
+add_executable(KernelTest UnityBuild.c Boot.S KernelTrapEntry.S)
 
 target_link_libraries(KernelTest PRIVATE Common)
 

@@ -27,10 +27,10 @@ typedef void (*CpuTrapHandler)(struct CpuTrapFrame*);
 
 uint64_t CpuReadTime();
 uint64_t CpuReadCycle();
-void CpuSetSupervisorTrapHandler(CpuTrapHandler trapHandler);
-void CpuEnableSupervisorInterrupts(CpuInterruptType types);
-void CpuDisableSupervisorInterrupts(CpuInterruptType types);
-void CpuClearSupervisorPendingInterrupts(CpuInterruptType types);
+void CpuSetTrapHandler(CpuTrapHandler trapHandler);
+void CpuEnableInterrupts(CpuInterruptType types);
+void CpuDisableInterrupts(CpuInterruptType types);
+void CpuClearPendingInterrupts(CpuInterruptType types);
 void CpuWaitForInterrupt();
 
 uintptr_t CpuTrapFrameGetProgramCounter(const CpuTrapFrame* trapFrame);
