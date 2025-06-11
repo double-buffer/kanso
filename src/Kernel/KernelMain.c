@@ -14,15 +14,18 @@ const char KernelLogo[] =
 
 void KernelTrapHandler(CpuTrapFrame* trapFrame)
 {
+    CpuLogTrapFrame(trapFrame);
     auto trapCause = CpuTrapFrameGetTrapCause(trapFrame);
 
     switch (trapCause)
     {
+        case CpuTrapCause_InterruptTimer:
+            break;
+
         default:
-            KernelFailure(String("Unknown Kernel Trap Cause."), 1);
+            KernelFailure(String("Unknown Kernel Trap Cause. (Cause=%x)"), trapCause);
     }
 
-    CpuLogTrapFrame(trapFrame);
     auto programCounter = CpuTrapFrameGetProgramCounter(trapFrame);
 
     KernelConsolePrint(String("Kernel trap handler: %l (PC=%x).\n"), CpuReadTime(), programCounter);

@@ -221,6 +221,35 @@ void CpuLogTrapFrame(const CpuTrapFrame* trapFrame)
 
 CpuTrapCause CpuTrapFrameGetTrapCause(const CpuTrapFrame* trapFrame)
 {
+    auto isInterrupt = (trapFrame->SupervisorRegisters.Cause >> (sizeof(uintptr_t) * 8 - 1) > 0);
+    auto causeCode = trapFrame->SupervisorRegisters.Cause & ((1ULL<<((sizeof(uintptr_t)*8)-1))-1);
+
+    if (isInterrupt)
+    {
+        // TODO: Extract constants
+        switch (causeCode)
+        {
+            case 1:
+                return CpuTrapCause_InterruptSoftware;
+
+            case 5:
+                return CpuTrapCause_InterruptTimer;
+
+            case 9:
+                return CpuTrapCause_InterruptExternal;
+        }
+    }
+
+    /*
+    switch (code) {
+        case 8:  return TC_SYSCALL;
+        case 12: return TC_PAGE_FAULT_INS;
+        case 13: return TC_PAGE_FAULT_LOAD;
+        case 15: return TC_PAGE_FAULT_STORE;
+        case 2:  return TC_ILLEGAL_INSTRUCTION;
+        default: return TC_OTHER;
+    }*/
+
     return CpuTrapCause_Unknown;
 }
 

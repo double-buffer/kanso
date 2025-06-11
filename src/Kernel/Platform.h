@@ -22,7 +22,10 @@ typedef enum
 
 typedef enum
 {
-    CpuTrapCause_Unknown
+    CpuTrapCause_Unknown,
+    CpuTrapCause_InterruptSoftware,
+    CpuTrapCause_InterruptTimer,
+    CpuTrapCause_InterruptExternal,
 } CpuTrapCause;
 
 struct CpuTrapFrame;
