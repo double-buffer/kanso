@@ -9,13 +9,15 @@ kernel_trap_entry:
     # to give the trap handler a kernel space stack independant of user mode.
     # For now, we just save the current SP that is shared between kernel and user.
     csrw  sscratch, sp
-    csrr  t0, sepc
 
-    li a0, 5
+    # TODO: For now we are saving all the Gprs but it should be revised later
+    # to optimize
+    addi  sp, sp, -(36 * PTR_SIZE)
+    save_general_purpose_registers sp
 
-    save_general_purpose_registers
-    # TODO: Save supervisor registers
-
+    mv    t0, sp
+    addi  t0, t0, 31 * PTR_SIZE 
+    save_supervisor_registers t0
 
     la    t1, globalCpuTrapHandler
     load_pointer  t1, (t1)
@@ -23,10 +25,13 @@ kernel_trap_entry:
     mv    a0, sp
     jalr  t1 
 
-    load_general_purpose_registers
-    # TODO: Load supervisor registers
+    load_general_purpose_registers sp
 
-    csrw  sepc, t0
+    mv    t0, sp
+    addi  t0, t0, 31 * PTR_SIZE 
+    load_supervisor_registers t0
+
+    addi  sp, sp, (36 * PTR_SIZE)
 
     # TODO: When we will have a dedicated kernel stack per HART,
     # We need to make sure to revert SP before swapping it back

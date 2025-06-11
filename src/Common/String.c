@@ -31,6 +31,7 @@ void StringFormat(SpanChar* destination, ReadOnlySpanChar message, ...)
     va_end(vargs);
 }
 
+// TODO: Refactor this function
 void StringFormatVargs(SpanChar* destination, ReadOnlySpanChar message, va_list vargs)
 {
     uint32_t length = 0;
@@ -97,13 +98,43 @@ void StringFormatVargs(SpanChar* destination, ReadOnlySpanChar message, va_list 
                     break;
                 }
 
+                case 'l':
+                {
+                    int64_t decimalArgument = va_arg(vargs, int64_t);
+
+                    // HACK: We should do a code that compile 32 and 64-bit
+                    int32_t magnitude = (int32_t)decimalArgument;
+
+                    if (decimalArgument < 0) 
+                    {
+                        destination->Pointer[length++] = '-';
+                        magnitude = -magnitude;
+                    }
+
+                    int32_t divisor = 1;
+
+                    while ((magnitude / divisor) > 9)
+                    {
+                        divisor *= 10;
+                    }
+
+                    while (divisor > 0) 
+                    {
+                        destination->Pointer[length++] = '0' + magnitude / divisor;
+
+                        magnitude %= divisor;
+                        divisor /= 10;
+                    }
+                    break;
+                }
+
                 case 'x':
                 {
-                    uint64_t hexaArgument = va_arg(vargs, uint64_t);
+                    uintptr_t hexaArgument = va_arg(vargs, uintptr_t);
                     destination->Pointer[length++] = '0';
                     destination->Pointer[length++] = 'x';
 
-                    for (int64_t i = (sizeof(uintptr_t) * 2) - 1; i >= 0; i--) 
+                    for (int32_t i = (sizeof(uintptr_t) * 2) - 1; i >= 0; i--) 
                     {
                         unsigned nibble = (hexaArgument >> (i * 4)) & 0xf;
                         destination->Pointer[length++] = "0123456789abcdef"[nibble];

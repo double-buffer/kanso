@@ -38,20 +38,19 @@ Test(Cpu, CpuReadCycle)
 
 void TestTrapHandler(CpuTrapFrame* trapFrame)
 {
-    auto programCounter = CpuTrapFrameGetProgramCounter(trapFrame);
-    KernelConsolePrint(String("Test Trap %x\n"), programCounter);
-    TestAssertEquals(0, programCounter);
-
     CpuClearPendingInterrupts(CpuInterruptType_Timer);
     CpuDisableInterrupts(CpuInterruptType_All);
+
+    // Assert
+    auto programCounter = CpuTrapFrameGetProgramCounter(trapFrame);
+    TestAssertNotEquals(0, programCounter);
 }
 
 Test(Cpu, CpuTrapHandler)
 {
-    // Arrange
+    // Arrange / Act
     CpuSetTrapHandler(TestTrapHandler);
     CpuEnableInterrupts(CpuInterruptType_Timer);
     BiosSetTimer(CpuReadTime());
-    KernelConsolePrint(String("Test finieshed \n"));
     CpuSetTrapHandler(nullptr);
 }

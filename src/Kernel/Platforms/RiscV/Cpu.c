@@ -1,7 +1,8 @@
 #include "Types.h"
+#include "../../KernelConsole.h"
 #include "../../Platform.h"
 
-struct CpuTrapFrame
+typedef struct 
 {
     uintptr_t RA;
     uintptr_t SP;
@@ -34,7 +35,25 @@ struct CpuTrapFrame
     uintptr_t T4;
     uintptr_t T5;
     uintptr_t T6;
+} GeneralPurposeRegisters;
+
+typedef struct
+{
+    uintptr_t Epc;
+    uintptr_t Status;
+    uintptr_t Scratch;
+    uintptr_t Cause;
+    uintptr_t TrapValue;
+} SupervisorRegisters;
+
+struct CpuTrapFrame
+{
+    // TODO: Add a TrapFrameType to specify if it is partial, full, float, vector, etc.
+    GeneralPurposeRegisters GeneralPurposeRegisters;
+    SupervisorRegisters SupervisorRegisters;
 };
+
+static_assert(sizeof(CpuTrapFrame) % 16 == 0);
 
 extern void kernel_trap_entry();
 
@@ -167,21 +186,45 @@ inline void CpuWaitForInterrupt()
     __asm__ __volatile__("wfi");
 }
 
+void LogGeneralPurposeRegisters(const GeneralPurposeRegisters* generalPurposeRegisters)
+{
+    KernelConsolePrint(String("ra:  %x    sp:  %x    gp:  %x\n"), generalPurposeRegisters->RA, generalPurposeRegisters->SP, generalPurposeRegisters->GP);
+    KernelConsolePrint(String("tp:  %x    t0:  %x    t1:  %x\n"), generalPurposeRegisters->TP, generalPurposeRegisters->T0, generalPurposeRegisters->T1);
+    KernelConsolePrint(String("t2:  %x    s0:  %x    s1:  %x\n"), generalPurposeRegisters->T2, generalPurposeRegisters->S0, generalPurposeRegisters->S1);
+    KernelConsolePrint(String("a0:  %x    a1:  %x    a2:  %x\n"), generalPurposeRegisters->A0, generalPurposeRegisters->A1, generalPurposeRegisters->A2);
+    KernelConsolePrint(String("a3:  %x    a4:  %x    a5:  %x\n"), generalPurposeRegisters->A3, generalPurposeRegisters->A4, generalPurposeRegisters->A5);
+    KernelConsolePrint(String("a6:  %x    a7:  %x    s2:  %x\n"), generalPurposeRegisters->A6, generalPurposeRegisters->A7, generalPurposeRegisters->S2);
+    KernelConsolePrint(String("s3:  %x    s4:  %x    s5:  %x\n"), generalPurposeRegisters->S3, generalPurposeRegisters->S4, generalPurposeRegisters->S5);
+    KernelConsolePrint(String("s6:  %x    s7:  %x    s8:  %x\n"), generalPurposeRegisters->S6, generalPurposeRegisters->S7, generalPurposeRegisters->S8);
+    KernelConsolePrint(String("s9:  %x    s10: %x    s11: %x\n"), generalPurposeRegisters->S9, generalPurposeRegisters->S10, generalPurposeRegisters->S11);
+    KernelConsolePrint(String("t3:  %x    t4:  %x    t5:  %x\n"), generalPurposeRegisters->T3, generalPurposeRegisters->T4, generalPurposeRegisters->T5);
+    KernelConsolePrint(String("t6:  %x\n"), generalPurposeRegisters->T6);
+}
+
+void LogSupervisorRegisters(const SupervisorRegisters* supervisorRegisters)
+{
+    KernelConsolePrint(String("sepc:   %x    sstatus: %x    sscratch: %x\n"), supervisorRegisters->Epc, supervisorRegisters->Status, supervisorRegisters->Scratch);
+    KernelConsolePrint(String("scause: %x    stval:   %x\n"), supervisorRegisters->Cause, supervisorRegisters->TrapValue);
+}
+
+void CpuLogTrapFrame(const CpuTrapFrame* trapFrame)
+{
+    KernelConsolePrint(String("Trap Frame:\n"));
+    KernelConsolePrint(String("===========\n\n"));
+
+    KernelConsolePrint(String("General Purpose Registers:\n"));
+    LogGeneralPurposeRegisters(&trapFrame->GeneralPurposeRegisters);
+
+    KernelConsolePrint(String("\nSupervisor Registers:\n"));
+    LogSupervisorRegisters(&trapFrame->SupervisorRegisters);
+}
+
+CpuTrapCause CpuTrapFrameGetTrapCause(const CpuTrapFrame* trapFrame)
+{
+    return CpuTrapCause_Unknown;
+}
+
 inline uintptr_t CpuTrapFrameGetProgramCounter(const CpuTrapFrame* trapFrame)
 {
-    // TODO: Move that to ConsoleLogTrapFrame
-    KernelConsolePrint(String("raw ptr = %x\n"), trapFrame);
-
-    KernelConsolePrint(String("RA: %x\n"), trapFrame->RA);
-    KernelConsolePrint(String("SP: %x\n"), trapFrame->SP);
-    KernelConsolePrint(String("GP: %x\n"), trapFrame->GP);
-    KernelConsolePrint(String("TP: %x\n"), trapFrame->TP);
-    KernelConsolePrint(String("T0: %x\n"), trapFrame->T0);
-    KernelConsolePrint(String("T1: %x\n"), trapFrame->T1);
-    KernelConsolePrint(String("T2: %x\n"), trapFrame->T2);
-    KernelConsolePrint(String("S0: %x\n"), trapFrame->S0);
-    KernelConsolePrint(String("S1: %x\n"), trapFrame->S1);
-    KernelConsolePrint(String("A0: %x\n"), trapFrame->A0);
-
-    return trapFrame->T0;
+    return trapFrame->GeneralPurposeRegisters.T0;
 }

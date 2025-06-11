@@ -50,17 +50,20 @@ extern SpanChar globalTestLastErrorMessage;
     do { \
         if (!(expr)) { \
             TestEntry* testEntry = &globalTests[globalCurrentTestIndex]; \
-            testEntry->HasError = true; \
-            StringFormat(&globalTestLastErrorMessage, String("%s\n  Expected: %s\n    Actual: %d %s %d"), __FILE__, #expr, expected, operator, actual); \
-            return; \
+            if (!testEntry->HasError) \
+            { \
+                testEntry->HasError = true; \
+                StringFormat(&globalTestLastErrorMessage, String("%s\n  Expected: %s\n    Actual: %d %s %d"), __FILE__, #expr, expected, operator, actual); \
+            } \
         } \
     } while (false)
 
-// BUG: There is a bug in the assert only in 32-bit version, when the assert fail
+// BUG: There is a bug in the assert only in 32-bit version, when the assert fail maybe due to 64 bit values used in the comparison like with the time
 #define TestAssertEquals(expected, actual) TestAssertCore((expected) == (actual), expected, actual, "==")
 #define TestAssertNotEquals(expected, actual) TestAssertCore((expected) != (actual), expected, actual, "!=")
 #define TestAssertGreaterThan(expected, actual) TestAssertCore((expected) > (actual), expected, actual, ">")
 
+// TODO: Adapt the macro like the core one
 #define TestAssertStringEquals(expected, actual) \
     do { \
         if (finalString.Length != destination.Length) \
@@ -68,7 +71,6 @@ extern SpanChar globalTestLastErrorMessage;
             TestEntry* testEntry = &globalTests[globalCurrentTestIndex]; \
             testEntry->HasError = true; \
             StringFormat(&globalTestLastErrorMessage, String("%s\n  Expected: (%s.Length) == (%s.Length)\n    Actual: %d == %d"), __FILE__, #expected, #actual, expected.Length, actual.Length); \
-            return; \
         } \
         \
         if (!StringEquals(expected, actual)) \
@@ -76,7 +78,6 @@ extern SpanChar globalTestLastErrorMessage;
             TestEntry* testEntry = &globalTests[globalCurrentTestIndex]; \
             testEntry->HasError = true; \
             StringFormat(&globalTestLastErrorMessage, String("%s\n  Expected: (%s) == (%s)\n    Actual: \"%s\" == \"%s\""), __FILE__, #expected, #actual, expected.Pointer, actual.Pointer); \
-            return; \
         } \
     } while (false)
 

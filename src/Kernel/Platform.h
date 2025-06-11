@@ -20,6 +20,11 @@ typedef enum
     CpuInterruptType_All = 0xFF,
 } CpuInterruptType;
 
+typedef enum
+{
+    CpuTrapCause_Unknown
+} CpuTrapCause;
+
 struct CpuTrapFrame;
 typedef struct CpuTrapFrame CpuTrapFrame;
 
@@ -33,6 +38,8 @@ void CpuDisableInterrupts(CpuInterruptType types);
 void CpuClearPendingInterrupts(CpuInterruptType types);
 void CpuWaitForInterrupt();
 
+void CpuLogTrapFrame(const CpuTrapFrame* trapFrame);
+CpuTrapCause CpuTrapFrameGetTrapCause(const CpuTrapFrame* trapFrame);
 uintptr_t CpuTrapFrameGetProgramCounter(const CpuTrapFrame* trapFrame);
 
 

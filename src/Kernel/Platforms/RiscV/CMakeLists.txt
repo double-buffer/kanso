@@ -12,7 +12,7 @@ set_target_properties(Kernel PROPERTIES
 )
 
 add_custom_command(TARGET Kernel POST_BUILD
-    COMMAND llvm-objcopy
+    COMMAND "${CMAKE_OBJCOPY}"
             --output-target=binary               # -O binary
             --binary-architecture=riscv:${_MARCH}
             $<TARGET_FILE:Kernel>                # kernel.elf (source)
