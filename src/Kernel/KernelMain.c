@@ -15,26 +15,29 @@ const char KernelLogo[] =
 void KernelTrapHandler(CpuTrapFrame* trapFrame)
 {
     CpuLogTrapFrame(trapFrame);
-    auto trapCause = CpuTrapFrameGetTrapCause(trapFrame);
+    auto trapCause = CpuTrapFrameGetCause(trapFrame);
 
-    switch (trapCause)
+    if (trapCause.Type == CpuTrapCauseType_Interrupt)
     {
-        case CpuTrapCause_InterruptTimer:
-            break;
+        switch (trapCause.InterruptType)
+        {
+            case CpuInterruptType_Timer:
+                CpuClearPendingInterrupts(CpuInterruptType_Timer);
+                //CpuDisableInterrupts(CpuInterruptType_Timer);
+                //SbiSetTimer((uint64_t)-1);
+                BiosSetTimer(CpuReadTime() + 10000000);
+                
+                auto programCounter = CpuTrapFrameGetProgramCounter(trapFrame);
+                KernelConsolePrint(String("Kernel trap handler: %l (PC=%x).\n"), CpuReadTime(), programCounter);
 
-        default:
-            KernelFailure(String("Unknown Kernel Trap Cause. (Cause=%x)"), trapCause);
+                return;
+
+            default:
+                KernelFailure(String("Unknown interrupt type. (InterruptType: %x)"), trapCause.InterruptType);
+        }
     }
 
-    auto programCounter = CpuTrapFrameGetProgramCounter(trapFrame);
-
-    KernelConsolePrint(String("Kernel trap handler: %l (PC=%x).\n"), CpuReadTime(), programCounter);
-    KernelConsolePrint(String("Test=%x.\n"), programCounter);
-
-    CpuClearPendingInterrupts(CpuInterruptType_Timer);
-    //CpuDisableInterrupts(CpuInterruptType_Timer);
-    //SbiSetTimer((uint64_t)-1);
-    BiosSetTimer(CpuReadTime() + 10000000);
+    KernelFailure(String("Unknown Kernel Trap Cause. (Cause=%x)"), trapCause.Type);
 }
 
 void KernelMain()
@@ -51,6 +54,7 @@ void KernelMain()
 
     while (true)
     {
+        CpuGenerateInvalidInstruction();
         CpuWaitForInterrupt();
     }   
 }

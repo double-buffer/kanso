@@ -2,6 +2,10 @@
 #include "../../KernelConsole.h"
 #include "../../Platform.h"
 
+#define RISCV_INTERRUPT_SOFTWARE 1
+#define RISCV_INTERRUPT_TIMER 5
+#define RISCV_INTERRUPT_EXTERNAL 9
+
 typedef struct 
 {
     uintptr_t RA;
@@ -65,17 +69,17 @@ uintptr_t ComputeCpuInterruptMask(CpuInterruptType types)
 
     if (types & CpuInterruptType_Software)
     {
-        mask |= (uintptr_t)1 << 1;
+        mask |= (uintptr_t)1 << RISCV_INTERRUPT_SOFTWARE;
     }
 
     if (types & CpuInterruptType_Timer)
     {
-        mask |= (uintptr_t)1 << 5;
+        mask |= (uintptr_t)1 << RISCV_INTERRUPT_TIMER;
     }
 
     if (types & CpuInterruptType_External)
     {
-        mask |= (uintptr_t)1 << 9;
+        mask |= (uintptr_t)1 << RISCV_INTERRUPT_EXTERNAL;
     }
 
     return mask;
@@ -126,6 +130,48 @@ inline uint64_t CpuReadCycle()
     return result;
 }
 #endif
+
+inline void CpuGenerateInvalidInstruction()
+{
+    __asm__ volatile ("unimp");
+}
+
+/* Masks and “all-ones” patterns for the three fields we test. */
+#define RV_MASK_LOW2        0x0003u   /* bits[1:0] */
+#define RV_MASK_MID3        0x001Cu   /* bits[4:2] */
+#define RV_MASK_HIGH2       0x0060u   /* bits[6:5] */
+
+#define RV_PATTERN_LOW2_32  0x0003u   /* 0b11 */
+#define RV_PATTERN_MID3_48  0x001Cu   /* 0b111 << 2 */
+#define RV_PATTERN_HIGH2_64 0x0060u   /* 0b11  << 5 */
+
+/* Resulting instruction sizes in bytes. */
+#define RV_SIZE_16          2u
+#define RV_SIZE_32          4u
+#define RV_SIZE_48          6u
+#define RV_SIZE_64          8u
+
+uintptr_t CpuComputeNextInstructionAddress(uintptr_t instructionAddress)
+{
+    /* Text might be in an execute-only segment; cast via unsigned char avoids UB. */
+    const uint16_t firstHalfword =
+        *(const uint16_t *)(const unsigned char *)instructionAddress;
+
+    /* --- 1. 16-bit? -------------------------------------------------------- */
+    if ((firstHalfword & RV_MASK_LOW2) != RV_PATTERN_LOW2_32)
+        return instructionAddress + RV_SIZE_16;
+
+    /* --- 2. 32-bit? -------------------------------------------------------- */
+    if ((firstHalfword & RV_MASK_MID3) != RV_PATTERN_MID3_48)
+        return instructionAddress + RV_SIZE_32;
+
+    /* --- 3. 48-bit? -------------------------------------------------------- */
+    if ((firstHalfword & RV_MASK_HIGH2) != RV_PATTERN_HIGH2_64)
+        return instructionAddress + RV_SIZE_48;
+
+    /* --- 4. Otherwise it must be 64-bit ----------------------------------- */
+    return instructionAddress + RV_SIZE_64;
+}
 
 inline void CpuSetTrapHandler(CpuTrapHandler trapHandler)
 {
@@ -219,26 +265,37 @@ void CpuLogTrapFrame(const CpuTrapFrame* trapFrame)
     LogSupervisorRegisters(&trapFrame->SupervisorRegisters);
 }
 
-CpuTrapCause CpuTrapFrameGetTrapCause(const CpuTrapFrame* trapFrame)
+CpuTrapCause CpuTrapFrameGetCause(const CpuTrapFrame* trapFrame)
 {
     auto isInterrupt = (trapFrame->SupervisorRegisters.Cause >> (sizeof(uintptr_t) * 8 - 1) > 0);
     auto causeCode = trapFrame->SupervisorRegisters.Cause & ((1ULL<<((sizeof(uintptr_t)*8)-1))-1);
+
+    auto interruptType = CpuInterruptType_None;
 
     if (isInterrupt)
     {
         // TODO: Extract constants
         switch (causeCode)
         {
-            case 1:
-                return CpuTrapCause_InterruptSoftware;
+            case RISCV_INTERRUPT_SOFTWARE:
+                interruptType = CpuInterruptType_Software;
+                break;
 
-            case 5:
-                return CpuTrapCause_InterruptTimer;
+            case RISCV_INTERRUPT_TIMER:
+                interruptType = CpuInterruptType_Timer;
+                break;
 
-            case 9:
-                return CpuTrapCause_InterruptExternal;
+            case RISCV_INTERRUPT_EXTERNAL:
+                interruptType = CpuInterruptType_External;
+                break;
         }
     }
+
+    return (CpuTrapCause)
+    {
+        .Type = isInterrupt ? CpuTrapCauseType_Interrupt : CpuTrapCauseType_Unknown,
+        .InterruptType = interruptType
+    };
 
     /*
     switch (code) {
@@ -249,11 +306,14 @@ CpuTrapCause CpuTrapFrameGetTrapCause(const CpuTrapFrame* trapFrame)
         case 2:  return TC_ILLEGAL_INSTRUCTION;
         default: return TC_OTHER;
     }*/
-
-    return CpuTrapCause_Unknown;
 }
 
 inline uintptr_t CpuTrapFrameGetProgramCounter(const CpuTrapFrame* trapFrame)
 {
-    return trapFrame->GeneralPurposeRegisters.T0;
+    return trapFrame->SupervisorRegisters.Epc;
+}
+
+void CpuTrapFrameSetProgramCounter(CpuTrapFrame* trapFrame, uintptr_t value)
+{
+    trapFrame->SupervisorRegisters.Epc = value;
 }

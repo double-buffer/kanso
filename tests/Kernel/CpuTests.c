@@ -36,21 +36,61 @@ Test(Cpu, CpuReadCycle)
     TestAssertGreaterThan(cycle2, cycle1);
 }
 
-void TestTrapHandler(CpuTrapFrame* trapFrame)
+bool hasTestTrapHandler_WithTimerInterruptRun = false;
+
+void TestTrapHandler_WithTimerInterrupt(CpuTrapFrame* trapFrame)
 {
+    hasTestTrapHandler_WithTimerInterruptRun = true;
+
     CpuClearPendingInterrupts(CpuInterruptType_Timer);
     CpuDisableInterrupts(CpuInterruptType_All);
+    CpuSetTrapHandler(nullptr);
 
-    // Assert
-    auto programCounter = CpuTrapFrameGetProgramCounter(trapFrame);
-    TestAssertNotEquals(0, programCounter);
+    auto trapCause = CpuTrapFrameGetCause(trapFrame);
+
+    TestAssertEquals(CpuTrapCauseType_Interrupt, trapCause.Type);
+    TestAssertEquals(CpuInterruptType_Timer, trapCause.InterruptType);
 }
 
-Test(Cpu, CpuTrapHandler)
+Test(Cpu, CpuTrapHandler_WithTimerInterrupt_HasCorrectCause)
 {
-    // Arrange / Act
-    CpuSetTrapHandler(TestTrapHandler);
+    // Arrange
+    CpuSetTrapHandler(TestTrapHandler_WithTimerInterrupt);
     CpuEnableInterrupts(CpuInterruptType_Timer);
+
+    // Act
     BiosSetTimer(CpuReadTime());
+
+    // Assert
+    // TODO: AssertIsTrue
+    TestAssertEquals(true, hasTestTrapHandler_WithTimerInterruptRun);
+}
+
+bool hasTestTrapHandler_WithInvalidInstructionRun = false;
+
+void TestTrapHandler_WithInvalidInstruction(CpuTrapFrame* trapFrame)
+{
+    hasTestTrapHandler_WithInvalidInstructionRun = true;
     CpuSetTrapHandler(nullptr);
+
+    auto nextInstructionAddress = CpuComputeNextInstructionAddress(CpuTrapFrameGetProgramCounter(trapFrame));
+    CpuTrapFrameSetProgramCounter(trapFrame, nextInstructionAddress);
+
+    // Assert
+    auto trapCause = CpuTrapFrameGetCause(trapFrame);
+
+    TestAssertEquals(CpuTrapCauseType_Interrupt, trapCause.Type);
+    TestAssertEquals(CpuInterruptType_Timer, trapCause.InterruptType);
+}
+
+Test(Cpu, CpuTrapHandler_WithInvalidInstruction_HasCorrectCause)
+{
+    // Arrange
+    CpuSetTrapHandler(TestTrapHandler_WithInvalidInstruction);
+
+    // Act
+    CpuGenerateInvalidInstruction();
+
+    // Assert
+    TestAssertEquals(true, hasTestTrapHandler_WithInvalidInstructionRun);
 }

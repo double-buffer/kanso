@@ -107,8 +107,4 @@
     csrw  sstatus, t1
     load_pointer  t1, 2 * PTR_SIZE(\addr)
     csrw  sscratch, t1 
-    load_pointer  t1, 3 * PTR_SIZE(\addr)
-    csrw  scause, t1 
-    load_pointer  t1, 4 * PTR_SIZE(\addr)
-    csrw  stval, t1 
 .endm

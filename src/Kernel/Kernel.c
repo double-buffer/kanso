@@ -4,9 +4,9 @@
 
 void KernelFailureCore(ReadOnlySpanChar file, uint32_t line, ReadOnlySpanChar message, ...)
 {
-    KernelConsolePrint(String("\x1b[31m\n ----------------\n"));
-    KernelConsolePrint(String("| KERNEL Failure |\n"));
-    KernelConsolePrint(String(" ----------------\n\n"));
+    KernelConsolePrint(String("\x1b[31m\n\xDA\xC4\xC4\xC4----------------\xBF\n"));
+    KernelConsolePrint(String("\xB3 KERNEL Failure |\n"));
+    KernelConsolePrint(String("\xC0----------------\xD9\n\n"));
     KernelConsolePrint(String("%s:%d\n"), file, line);
 
     va_list vargs;

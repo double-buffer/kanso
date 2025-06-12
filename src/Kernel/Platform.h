@@ -20,12 +20,16 @@ typedef enum
     CpuInterruptType_All = 0xFF,
 } CpuInterruptType;
 
-typedef enum
+typedef enum 
 {
-    CpuTrapCause_Unknown,
-    CpuTrapCause_InterruptSoftware,
-    CpuTrapCause_InterruptTimer,
-    CpuTrapCause_InterruptExternal,
+    CpuTrapCauseType_Unknown,
+    CpuTrapCauseType_Interrupt,
+} CpuTrapCauseType;
+
+typedef struct
+{
+    CpuTrapCauseType Type;
+    CpuInterruptType InterruptType;
 } CpuTrapCause;
 
 struct CpuTrapFrame;
@@ -35,6 +39,10 @@ typedef void (*CpuTrapHandler)(struct CpuTrapFrame*);
 
 uint64_t CpuReadTime();
 uint64_t CpuReadCycle();
+
+void CpuGenerateInvalidInstruction();
+uintptr_t CpuComputeNextInstructionAddress(uintptr_t instructionAddress);
+
 void CpuSetTrapHandler(CpuTrapHandler trapHandler);
 void CpuEnableInterrupts(CpuInterruptType types);
 void CpuDisableInterrupts(CpuInterruptType types);
@@ -42,8 +50,9 @@ void CpuClearPendingInterrupts(CpuInterruptType types);
 void CpuWaitForInterrupt();
 
 void CpuLogTrapFrame(const CpuTrapFrame* trapFrame);
-CpuTrapCause CpuTrapFrameGetTrapCause(const CpuTrapFrame* trapFrame);
+CpuTrapCause CpuTrapFrameGetCause(const CpuTrapFrame* trapFrame);
 uintptr_t CpuTrapFrameGetProgramCounter(const CpuTrapFrame* trapFrame);
+void CpuTrapFrameSetProgramCounter(CpuTrapFrame* trapFrame, uintptr_t value);
 
 
 typedef enum
