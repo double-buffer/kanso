@@ -7,6 +7,22 @@
 #define RISCV_INTERRUPT_TIMER 5
 #define RISCV_INTERRUPT_EXTERNAL 9
 
+#define RISCV_TRAP_SYNCHRONOUS_INSTRUCTION_ADDRESS_MISALIGNED 0 
+#define RISCV_TRAP_SYNCHRONOUS_INSTRUCTION_ACCESS_FAULT 1 
+#define RISCV_TRAP_SYNCHRONOUS_ILLEGAL_INSTRUCTION 2 
+#define RISCV_TRAP_SYNCHRONOUS_BREAKPOINT 3 
+#define RISCV_TRAP_LOAD_ADDRESS_MISALIGNED 4 
+#define RISCV_TRAP_LOAD_ACCESS_FAULT 5 
+#define RISCV_TRAP_STORE_AMO_ADDRESS_MISALIGNED 6 
+#define RISCV_TRAP_STORE_AMO_ACCESS_FAULT 7 
+#define RISCV_TRAP_ECALL_FROM_USER_MODE 8 
+#define RISCV_TRAP_ECALL_FROM_SUPERVISOR_MODE 9 
+#define RISCV_TRAP_INSTRUCTION_PAGE_FAULT 12 
+#define RISCV_TRAP_LOAD_PAGE_FAULT 13 
+#define RISCV_TRAP_STORE_AMO_PAGE_FAULT 15 
+#define RISCV_TRAP_SOFTWARE_CHECK 18 
+#define RISCV_TRAP_HARDWARE_ERROR 19 
+
 typedef struct 
 {
     uintptr_t RA;
@@ -339,6 +355,7 @@ CpuTrapCause CpuTrapFrameGetCause(const CpuTrapFrame* trapFrame)
     auto causeCode = trapFrame->SupervisorRegisters.Cause & ((1ULL<<((sizeof(uintptr_t)*8)-1))-1);
 
     auto interruptType = CpuInterruptType_None;
+    auto synchronousType = CpuTrapSynchronousType_Unknown;
 
     if (isInterrupt)
     {
@@ -357,24 +374,57 @@ CpuTrapCause CpuTrapFrameGetCause(const CpuTrapFrame* trapFrame)
                 break;
         }
     }
+    
+    else
+    {
+        switch (causeCode)
+        {
+            case RISCV_TRAP_SYNCHRONOUS_INSTRUCTION_ADDRESS_MISALIGNED:
+            case RISCV_TRAP_SYNCHRONOUS_INSTRUCTION_ACCESS_FAULT:
+            case RISCV_TRAP_SYNCHRONOUS_ILLEGAL_INSTRUCTION:
+                synchronousType = CpuTrapSynchronousType_InstructionError;
+                break;
+
+            case RISCV_TRAP_SYNCHRONOUS_BREAKPOINT:
+                synchronousType = CpuTrapSynchronousType_Debug;
+                break;
+
+            case RISCV_TRAP_LOAD_ADDRESS_MISALIGNED: 
+            case RISCV_TRAP_LOAD_ACCESS_FAULT: 
+            case RISCV_TRAP_STORE_AMO_ADDRESS_MISALIGNED: 
+            case RISCV_TRAP_STORE_AMO_ACCESS_FAULT: 
+                synchronousType = CpuTrapSynchronousType_AddressError;
+                break;
+
+            case RISCV_TRAP_ECALL_FROM_USER_MODE: 
+            case RISCV_TRAP_ECALL_FROM_SUPERVISOR_MODE: 
+                synchronousType = CpuTrapSynchronousType_SystemCall;
+                break;
+
+            case RISCV_TRAP_INSTRUCTION_PAGE_FAULT: 
+            case RISCV_TRAP_LOAD_PAGE_FAULT: 
+            case RISCV_TRAP_STORE_AMO_PAGE_FAULT: 
+                synchronousType = CpuTrapSynchronousType_PageError;
+                break;
+
+            case RISCV_TRAP_SOFTWARE_CHECK: 
+                synchronousType = CpuTrapSynchronousType_IntegrityError;
+                break;
+
+            case RISCV_TRAP_HARDWARE_ERROR: 
+                synchronousType = CpuTrapSynchronousType_HardwareError;
+                break;
+        }
+    }
 
     return (CpuTrapCause)
     {
-        .Type = isInterrupt ? CpuTrapCauseType_Interrupt : CpuTrapCauseType_Exception,
+        .Type = isInterrupt ? CpuTrapType_Interrupt : CpuTrapType_Synchronous,
         .InterruptType = interruptType,
+        .SynchronousType = synchronousType,
         .Code = trapFrame->SupervisorRegisters.Cause,
         .ExtraInformation = trapFrame->SupervisorRegisters.TrapValue
     };
-
-    /*
-    switch (code) {
-        case 8:  return TC_SYSCALL;
-        case 12: return TC_PAGE_FAULT_INS;
-        case 13: return TC_PAGE_FAULT_LOAD;
-        case 15: return TC_PAGE_FAULT_STORE;
-        case 2:  return TC_ILLEGAL_INSTRUCTION;
-        default: return TC_OTHER;
-    }*/
 }
 
 inline uintptr_t CpuTrapFrameGetProgramCounter(const CpuTrapFrame* trapFrame)

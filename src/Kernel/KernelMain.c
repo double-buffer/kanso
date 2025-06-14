@@ -14,10 +14,10 @@ const char KernelLogo[] =
 
 void KernelTrapHandler(CpuTrapFrame* trapFrame)
 {
-    CpuLogTrapFrame(trapFrame);
     auto trapCause = CpuTrapFrameGetCause(trapFrame);
+    auto errorName = String("Unknown kernel trap cause");
 
-    if (trapCause.Type == CpuTrapCauseType_Interrupt)
+    if (trapCause.Type == CpuTrapType_Interrupt)
     {
         switch (trapCause.InterruptType)
         {
@@ -33,11 +33,40 @@ void KernelTrapHandler(CpuTrapFrame* trapFrame)
                 return;
 
             default:
-                KernelFailure(String("Unknown interrupt type. (Code=%x, Extra=%x)"), trapCause.Code, trapCause.ExtraInformation);
+                errorName = String("Unknown interrupt type");
+        }
+    }
+    else
+    {
+        switch (trapCause.SynchronousType)
+        {
+            case CpuTrapSynchronousType_InstructionError:
+                errorName = String("Instruction error");
+                break;
+
+            case CpuTrapSynchronousType_AddressError:
+                errorName = String("Address error");
+                break;
+
+            case CpuTrapSynchronousType_PageError:
+                errorName = String("Page error");
+                break;
+
+            case CpuTrapSynchronousType_IntegrityError:
+                errorName = String("Integrity error");
+                break;
+
+            case CpuTrapSynchronousType_HardwareError:
+                errorName = String("Hardware error");
+                break;
+
+            default:
+                errorName = String("Unknown synchronous trap type");
         }
     }
 
-    KernelFailure(String("Unknown kernel trap cause. (Code=%x, Extra=%x)"), trapCause.Code, trapCause.ExtraInformation);
+    CpuLogTrapFrame(trapFrame);
+    KernelFailure(String("%s. (Code=%x, Extra=%x)"), errorName, trapCause.Code, trapCause.ExtraInformation);
 }
 
 void KernelMain()

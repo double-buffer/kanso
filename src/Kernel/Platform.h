@@ -31,21 +31,28 @@ typedef enum
 
 typedef enum 
 {
-    CpuTrapCauseType_Unknown,
-    CpuTrapCauseType_Interrupt,
-    CpuTrapCauseType_Exception
-} CpuTrapCauseType;
+    CpuTrapType_Unknown,
+    CpuTrapType_Interrupt,
+    CpuTrapType_Synchronous
+} CpuTrapType;
 
 typedef enum
 {
-    CpuExceptionCategory_Unknown
-} CpuExceptionCategory;
+    CpuTrapSynchronousType_Unknown,
+    CpuTrapSynchronousType_InstructionError,
+    CpuTrapSynchronousType_Debug,
+    CpuTrapSynchronousType_AddressError,
+    CpuTrapSynchronousType_PageError,
+    CpuTrapSynchronousType_SystemCall,
+    CpuTrapSynchronousType_IntegrityError,
+    CpuTrapSynchronousType_HardwareError
+} CpuTrapSynchronousType;
 
 typedef struct
 {
-    CpuTrapCauseType Type;
+    CpuTrapType Type;
     CpuInterruptType InterruptType;
-    CpuExceptionCategory ExceptionCategory;
+    CpuTrapSynchronousType SynchronousType;
     uintptr_t Code;
     uintptr_t ExtraInformation;
 } CpuTrapCause;

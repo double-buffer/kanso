@@ -48,7 +48,7 @@ void TestTrapHandler_WithTimerInterrupt(CpuTrapFrame* trapFrame)
 
     auto trapCause = CpuTrapFrameGetCause(trapFrame);
 
-    TestAssertEquals(CpuTrapCauseType_Interrupt, trapCause.Type);
+    TestAssertEquals(CpuTrapType_Interrupt, trapCause.Type);
     TestAssertEquals(CpuInterruptType_Timer, trapCause.InterruptType);
 }
 
@@ -74,8 +74,8 @@ void TestTrapHandler_WithInvalidInstruction(CpuTrapFrame* trapFrame)
 
     auto trapCause = CpuTrapFrameGetCause(trapFrame);
 
-    TestAssertEquals(CpuTrapCauseType_Exception, trapCause.Type);
-    TestAssertEquals(CpuInterruptType_Timer, trapCause.InterruptType);
+    TestAssertEquals(CpuTrapType_Synchronous, trapCause.Type);
+    TestAssertEquals(CpuTrapSynchronousType_InstructionError, trapCause.SynchronousType);
 
     auto programCounter = CpuTrapFrameGetProgramCounter(trapFrame);
     auto nextInstructionAddress = CpuComputeNextInstructionAddress(programCounter);
