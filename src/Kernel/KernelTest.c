@@ -5,32 +5,35 @@
 #include "Platform.h"
 #include "Version.h"
 
-const char* TEST_CONSOLE_RESET = "\x1b[0m";
-const char* TEST_CONSOLE_GREEN = "\x1b[32m";
-const char* TEST_CONSOLE_RED = "\x1b[31m";
-
 void KernelTestHandler(TestRunState state, ReadOnlySpanChar message, ...)
 {
     if (state == TestRunState_Start)
     {
-        KernelConsolePrint(String("%s[ RUN      ]%s"), TEST_CONSOLE_GREEN, TEST_CONSOLE_RESET);
+        KernelConsoleSetForegroundColor(KernelConsoleColorSuccess);
+        KernelConsolePrint(String("[ RUN      ]"));
     }
     else if (state == TestRunState_OK)
     {
-        KernelConsolePrint(String("%s[       OK ]%s"), TEST_CONSOLE_GREEN, TEST_CONSOLE_RESET);
+        KernelConsoleSetForegroundColor(KernelConsoleColorSuccess);
+        KernelConsolePrint(String("[       OK ]"));
     }
     else if (state == TestRunState_Passed)
     {
-        KernelConsolePrint(String("%s[  PASSED  ]%s"), TEST_CONSOLE_GREEN, TEST_CONSOLE_RESET);
+        KernelConsoleSetForegroundColor(KernelConsoleColorSuccess);
+        KernelConsolePrint(String("[  PASSED  ]"));
     }
     else if (state == TestRunState_Failed)
     {
-        KernelConsolePrint(String("%s[  FAILED  ]%s"), TEST_CONSOLE_RED, TEST_CONSOLE_RESET);
+        KernelConsoleSetForegroundColor(KernelConsoleColorError);
+        KernelConsolePrint(String("[  FAILED  ]"));
     }
     else if (state == TestRunState_Separator)
     {
-        KernelConsolePrint(String("%s[==========]%s"), TEST_CONSOLE_GREEN, TEST_CONSOLE_RESET);
+        KernelConsoleSetForegroundColor(KernelConsoleColorSuccess);
+        KernelConsolePrint(String("[==========]"));
     }
+
+    KernelConsoleResetStyle();
 
     va_list vargs;
     va_start(vargs, message);
@@ -47,8 +50,10 @@ void KernelMain()
 {
     auto platformInformation = PlatformGetInformation();
 
+    KernelConsoleSetForegroundColor(KernelConsoleColorHighlight);
     KernelConsolePrint(String("\n\nKanso OS Kernel Tests %s "), KANSO_VERSION_FULL);
     KernelConsolePrint(String("(%s %d-bit)\n\n"), platformInformation.Name.Pointer, platformInformation.ArchitectureBits);
+    KernelConsoleResetStyle();
 
     TestRun(KernelTestHandler);
     BiosReset(BiosResetType_Shutdown, BiosResetReason_None);

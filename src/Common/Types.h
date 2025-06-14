@@ -27,3 +27,11 @@ static_assert(sizeof(uintptr_t) == sizeof(void *), "uintptr_t is not pointer-siz
 #define va_start __builtin_va_start
 #define va_end   __builtin_va_end
 #define va_arg   __builtin_va_arg
+
+typedef struct
+{
+    uint8_t Red;
+    uint8_t Green;
+    uint8_t Blue;
+    uint8_t Alpha;
+} Color;
