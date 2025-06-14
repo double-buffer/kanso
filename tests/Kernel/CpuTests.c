@@ -71,16 +71,15 @@ bool hasTestTrapHandler_WithInvalidInstructionRun = false;
 void TestTrapHandler_WithInvalidInstruction(CpuTrapFrame* trapFrame)
 {
     hasTestTrapHandler_WithInvalidInstructionRun = true;
-    CpuSetTrapHandler(nullptr);
 
-    auto nextInstructionAddress = CpuComputeNextInstructionAddress(CpuTrapFrameGetProgramCounter(trapFrame));
-    CpuTrapFrameSetProgramCounter(trapFrame, nextInstructionAddress);
-
-    // Assert
     auto trapCause = CpuTrapFrameGetCause(trapFrame);
 
-    TestAssertEquals(CpuTrapCauseType_Interrupt, trapCause.Type);
+    TestAssertEquals(CpuTrapCauseType_Exception, trapCause.Type);
     TestAssertEquals(CpuInterruptType_Timer, trapCause.InterruptType);
+
+    auto programCounter = CpuTrapFrameGetProgramCounter(trapFrame);
+    auto nextInstructionAddress = CpuComputeNextInstructionAddress(programCounter);
+    CpuTrapFrameSetProgramCounter(trapFrame, nextInstructionAddress);
 }
 
 Test(Cpu, CpuTrapHandler_WithInvalidInstruction_HasCorrectCause)
@@ -93,4 +92,6 @@ Test(Cpu, CpuTrapHandler_WithInvalidInstruction_HasCorrectCause)
 
     // Assert
     TestAssertEquals(true, hasTestTrapHandler_WithInvalidInstructionRun);
+
+    CpuSetTrapHandler(nullptr);
 }

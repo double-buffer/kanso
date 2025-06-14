@@ -3,6 +3,10 @@
 #include "Memory.h"
 #include "Types.h"
 
+// --------------------------------------------------------------------------------------
+// General
+// --------------------------------------------------------------------------------------
+
 typedef struct
 {
     ReadOnlySpanChar Name;
@@ -10,6 +14,11 @@ typedef struct
 } PlatformInformation;
 
 PlatformInformation PlatformGetInformation();
+
+
+// --------------------------------------------------------------------------------------
+// Cpu
+// --------------------------------------------------------------------------------------
 
 typedef enum
 {
@@ -24,12 +33,21 @@ typedef enum
 {
     CpuTrapCauseType_Unknown,
     CpuTrapCauseType_Interrupt,
+    CpuTrapCauseType_Exception
 } CpuTrapCauseType;
+
+typedef enum
+{
+    CpuExceptionCategory_Unknown
+} CpuExceptionCategory;
 
 typedef struct
 {
     CpuTrapCauseType Type;
     CpuInterruptType InterruptType;
+    CpuExceptionCategory ExceptionCategory;
+    uintptr_t Code;
+    uintptr_t ExtraInformation;
 } CpuTrapCause;
 
 struct CpuTrapFrame;
@@ -54,6 +72,10 @@ CpuTrapCause CpuTrapFrameGetCause(const CpuTrapFrame* trapFrame);
 uintptr_t CpuTrapFrameGetProgramCounter(const CpuTrapFrame* trapFrame);
 void CpuTrapFrameSetProgramCounter(CpuTrapFrame* trapFrame, uintptr_t value);
 
+
+// --------------------------------------------------------------------------------------
+// Bios
+// --------------------------------------------------------------------------------------
 
 typedef enum
 {

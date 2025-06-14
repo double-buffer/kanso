@@ -33,20 +33,25 @@ void KernelTrapHandler(CpuTrapFrame* trapFrame)
                 return;
 
             default:
-                KernelFailure(String("Unknown interrupt type. (InterruptType: %x)"), trapCause.InterruptType);
+                KernelFailure(String("Unknown interrupt type. (Code=%x, Extra=%x)"), trapCause.Code, trapCause.ExtraInformation);
         }
     }
 
-    KernelFailure(String("Unknown Kernel Trap Cause. (Cause=%x)"), trapCause.Type);
+    KernelFailure(String("Unknown kernel trap cause. (Code=%x, Extra=%x)"), trapCause.Code, trapCause.ExtraInformation);
 }
 
 void KernelMain()
 {
     auto platformInformation = PlatformGetInformation();
 
-    KernelConsolePrint(String("\n\n\x1b[36m%s\x1b[0m\n"), KernelLogo);
+    KernelConsoleSetForegroundColor(KernelConsoleColorAccent);
+    KernelConsolePrint(String("\n\n%s\n"), KernelLogo);
+    KernelConsoleResetStyle();
+
+    KernelConsoleSetForegroundColor(KernelConsoleColorHighlight);
     KernelConsolePrint(String("Kanso OS %s "), KANSO_VERSION_FULL);
     KernelConsolePrint(String("(%s %d-bit)\n\n"), platformInformation.Name.Pointer, platformInformation.ArchitectureBits);
+    KernelConsoleResetStyle();
 
     CpuSetTrapHandler(KernelTrapHandler);
     BiosSetTimer(CpuReadTime() + 10000000);

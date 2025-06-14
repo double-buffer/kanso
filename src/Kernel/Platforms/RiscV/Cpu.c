@@ -1,3 +1,4 @@
+#include "Memory.h"
 #include "Types.h"
 #include "../../KernelConsole.h"
 #include "../../Platform.h"
@@ -232,36 +233,103 @@ inline void CpuWaitForInterrupt()
     __asm__ __volatile__("wfi");
 }
 
+void LogRegister(ReadOnlySpanChar name, uintptr_t value, uint8_t padding, bool insertTab)
+{
+    // TODO: Color the register name with the keyword blue of VScode?
+    KernelConsoleSetForegroundColor(KernelConsoleColorKeyword);
+    KernelConsolePrint(String("%s"), name);
+    KernelConsoleResetStyle();
+
+    KernelConsolePrint(String(":"));
+
+    for (uint32_t i = 0; i < padding; i++)
+    {
+        KernelConsolePrint(String(" "));
+    }
+
+    KernelConsoleSetForegroundColor(KernelConsoleColorNumeric);
+    KernelConsolePrint(String("%x"), value);
+    KernelConsoleResetStyle();
+
+    if (insertTab)
+    {
+        KernelConsolePrint(String("    "));
+    }
+    else
+    {
+        KernelConsolePrint(String("\n"));
+    }
+}
+
 void LogGeneralPurposeRegisters(const GeneralPurposeRegisters* generalPurposeRegisters)
 {
-    KernelConsolePrint(String("ra:  %x    sp:  %x    gp:  %x\n"), generalPurposeRegisters->RA, generalPurposeRegisters->SP, generalPurposeRegisters->GP);
-    KernelConsolePrint(String("tp:  %x    t0:  %x    t1:  %x\n"), generalPurposeRegisters->TP, generalPurposeRegisters->T0, generalPurposeRegisters->T1);
-    KernelConsolePrint(String("t2:  %x    s0:  %x    s1:  %x\n"), generalPurposeRegisters->T2, generalPurposeRegisters->S0, generalPurposeRegisters->S1);
-    KernelConsolePrint(String("a0:  %x    a1:  %x    a2:  %x\n"), generalPurposeRegisters->A0, generalPurposeRegisters->A1, generalPurposeRegisters->A2);
-    KernelConsolePrint(String("a3:  %x    a4:  %x    a5:  %x\n"), generalPurposeRegisters->A3, generalPurposeRegisters->A4, generalPurposeRegisters->A5);
-    KernelConsolePrint(String("a6:  %x    a7:  %x    s2:  %x\n"), generalPurposeRegisters->A6, generalPurposeRegisters->A7, generalPurposeRegisters->S2);
-    KernelConsolePrint(String("s3:  %x    s4:  %x    s5:  %x\n"), generalPurposeRegisters->S3, generalPurposeRegisters->S4, generalPurposeRegisters->S5);
-    KernelConsolePrint(String("s6:  %x    s7:  %x    s8:  %x\n"), generalPurposeRegisters->S6, generalPurposeRegisters->S7, generalPurposeRegisters->S8);
-    KernelConsolePrint(String("s9:  %x    s10: %x    s11: %x\n"), generalPurposeRegisters->S9, generalPurposeRegisters->S10, generalPurposeRegisters->S11);
-    KernelConsolePrint(String("t3:  %x    t4:  %x    t5:  %x\n"), generalPurposeRegisters->T3, generalPurposeRegisters->T4, generalPurposeRegisters->T5);
-    KernelConsolePrint(String("t6:  %x\n"), generalPurposeRegisters->T6);
+    LogRegister(String("ra"), generalPurposeRegisters->RA, 2, true);
+    LogRegister(String("sp"), generalPurposeRegisters->SP, 2, true);
+    LogRegister(String("gp"), generalPurposeRegisters->GP, 2, false);
+
+    LogRegister(String("tp"), generalPurposeRegisters->TP, 2, true);
+    LogRegister(String("t0"), generalPurposeRegisters->T0, 2, true);
+    LogRegister(String("t1"), generalPurposeRegisters->T1, 2, false);
+
+    LogRegister(String("t2"), generalPurposeRegisters->T2, 2, true);
+    LogRegister(String("s0"), generalPurposeRegisters->S0, 2, true);
+    LogRegister(String("s1"), generalPurposeRegisters->S1, 2, false);
+
+    LogRegister(String("a0"), generalPurposeRegisters->A0, 2, true);
+    LogRegister(String("a1"), generalPurposeRegisters->A1, 2, true);
+    LogRegister(String("a2"), generalPurposeRegisters->A2, 2, false);
+
+    LogRegister(String("a3"), generalPurposeRegisters->A3, 2, true);
+    LogRegister(String("a4"), generalPurposeRegisters->A4, 2, true);
+    LogRegister(String("a5"), generalPurposeRegisters->A5, 2, false);
+
+    LogRegister(String("a6"), generalPurposeRegisters->A6, 2, true);
+    LogRegister(String("a7"), generalPurposeRegisters->A7, 2, true);
+    LogRegister(String("s2"), generalPurposeRegisters->S2, 2, false);
+
+    LogRegister(String("s3"), generalPurposeRegisters->S3, 2, true);
+    LogRegister(String("s4"), generalPurposeRegisters->S4, 2, true);
+    LogRegister(String("s5"), generalPurposeRegisters->S5, 2, false);
+
+    LogRegister(String("s6"), generalPurposeRegisters->S6, 2, true);
+    LogRegister(String("s7"), generalPurposeRegisters->S7, 2, true);
+    LogRegister(String("s8"), generalPurposeRegisters->S8, 2, false);
+
+    LogRegister(String("s9"), generalPurposeRegisters->S9, 2, true);
+    LogRegister(String("s10"), generalPurposeRegisters->S10, 1, true);
+    LogRegister(String("s11"), generalPurposeRegisters->S11, 1, false);
+
+    LogRegister(String("t3"), generalPurposeRegisters->T3, 2, true);
+    LogRegister(String("t4"), generalPurposeRegisters->T4, 2, true);
+    LogRegister(String("t5"), generalPurposeRegisters->T5, 2, false);
+
+    LogRegister(String("t6"), generalPurposeRegisters->T6, 2, false);
 }
 
 void LogSupervisorRegisters(const SupervisorRegisters* supervisorRegisters)
 {
-    KernelConsolePrint(String("sepc:   %x    sstatus: %x    sscratch: %x\n"), supervisorRegisters->Epc, supervisorRegisters->Status, supervisorRegisters->Scratch);
-    KernelConsolePrint(String("scause: %x    stval:   %x\n"), supervisorRegisters->Cause, supervisorRegisters->TrapValue);
+    LogRegister(String("sepc"), supervisorRegisters->Epc, 3, true);
+    LogRegister(String("sstatus"), supervisorRegisters->Status, 1, true);
+    LogRegister(String("sscratch"), supervisorRegisters->Scratch, 1, false);
+
+    LogRegister(String("scause"), supervisorRegisters->Cause, 1, true);
+    LogRegister(String("stval"), supervisorRegisters->TrapValue, 3, false);
 }
 
 void CpuLogTrapFrame(const CpuTrapFrame* trapFrame)
 {
-    KernelConsolePrint(String("Trap Frame:\n"));
-    KernelConsolePrint(String("===========\n\n"));
+    KernelConsoleSetForegroundColor(KernelConsoleColorInfo);
+    KernelConsolePrintBoxMessage(String("Trap Frame"));
+    KernelConsoleResetStyle();
 
+    KernelConsoleSetForegroundColor(KernelConsoleColorHighlight);
     KernelConsolePrint(String("General Purpose Registers:\n"));
+    KernelConsoleResetStyle();
     LogGeneralPurposeRegisters(&trapFrame->GeneralPurposeRegisters);
 
+    KernelConsoleSetForegroundColor(KernelConsoleColorHighlight);
     KernelConsolePrint(String("\nSupervisor Registers:\n"));
+    KernelConsoleResetStyle();
     LogSupervisorRegisters(&trapFrame->SupervisorRegisters);
 }
 
@@ -274,7 +342,6 @@ CpuTrapCause CpuTrapFrameGetCause(const CpuTrapFrame* trapFrame)
 
     if (isInterrupt)
     {
-        // TODO: Extract constants
         switch (causeCode)
         {
             case RISCV_INTERRUPT_SOFTWARE:
@@ -293,8 +360,10 @@ CpuTrapCause CpuTrapFrameGetCause(const CpuTrapFrame* trapFrame)
 
     return (CpuTrapCause)
     {
-        .Type = isInterrupt ? CpuTrapCauseType_Interrupt : CpuTrapCauseType_Unknown,
-        .InterruptType = interruptType
+        .Type = isInterrupt ? CpuTrapCauseType_Interrupt : CpuTrapCauseType_Exception,
+        .InterruptType = interruptType,
+        .Code = trapFrame->SupervisorRegisters.Cause,
+        .ExtraInformation = trapFrame->SupervisorRegisters.TrapValue
     };
 
     /*
