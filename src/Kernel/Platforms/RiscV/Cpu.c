@@ -246,7 +246,7 @@ inline void CpuClearPendingInterrupts(CpuInterruptType types)
 
 inline void CpuWaitForInterrupt()
 {
-    __asm__ __volatile__("wfi");
+    __asm__ __volatile__("wfi" ::: "memory");
 }
 
 void LogRegister(ReadOnlySpanChar name, uintptr_t value, uint8_t padding, bool insertTab)

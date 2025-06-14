@@ -62,6 +62,7 @@ extern SpanChar globalTestLastErrorMessage;
 #define TestAssertEquals(expected, actual) TestAssertCore((expected) == (actual), expected, actual, "==")
 #define TestAssertNotEquals(expected, actual) TestAssertCore((expected) != (actual), expected, actual, "!=")
 #define TestAssertGreaterThan(expected, actual) TestAssertCore((expected) > (actual), expected, actual, ">")
+#define TestAssertIsTrue(actual) TestAssertCore(true == (actual), true, actual, "==")
 
 // TODO: Adapt the macro like the core one
 #define TestAssertStringEquals(expected, actual) \

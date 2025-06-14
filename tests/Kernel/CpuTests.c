@@ -36,7 +36,7 @@ Test(Cpu, CpuReadCycle)
     TestAssertGreaterThan(cycle2, cycle1);
 }
 
-bool hasTestTrapHandler_WithTimerInterruptRun = false;
+volatile bool hasTestTrapHandler_WithTimerInterruptRun = false;
 
 void TestTrapHandler_WithTimerInterrupt(CpuTrapFrame* trapFrame)
 {
@@ -57,13 +57,21 @@ Test(Cpu, CpuTrapHandler_WithTimerInterrupt_HasCorrectCause)
     // Arrange
     CpuSetTrapHandler(TestTrapHandler_WithTimerInterrupt);
     CpuEnableInterrupts(CpuInterruptType_Timer);
+    auto timerDeadline = CpuReadTime();
 
     // Act
-    BiosSetTimer(CpuReadTime());
+    BiosSetTimer(timerDeadline);
 
     // Assert
-    // TODO: AssertIsTrue
-    TestAssertEquals(true, hasTestTrapHandler_WithTimerInterruptRun);
+    const uint32_t maxIterations = 10;
+    uint32_t iterations = 0;
+
+    while (!hasTestTrapHandler_WithTimerInterruptRun && iterations < maxIterations) 
+    {
+        iterations++;
+    }
+
+    TestAssertIsTrue(hasTestTrapHandler_WithTimerInterruptRun);
 }
 
 bool hasTestTrapHandler_WithInvalidInstructionRun = false;
