@@ -92,7 +92,7 @@ void KernelMain()
     BiosSetTimer(CpuReadTime() + 10000000);
 
     KernelConsolePrint(String("Enable Interrupts\n"));
-    CpuEnableInterrupts(CpuInterruptType_Timer | CpuInterruptType_Software);
+    CpuEnableInterrupts(CpuInterruptType_All);
 
     KernelConsolePrint(String("Entering loop\n"));
 
