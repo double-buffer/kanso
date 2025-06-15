@@ -31,3 +31,16 @@ jobs:
     with:
       platform: ${{ matrix.Platform }}
 
+  results:
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    name: Final Results
+    needs: [kernel-build]
+    steps:
+      - run: |
+          result="${{ needs.kernel-build.result }}"
+          if [[ $result == "success" || $result == "skipped" ]]; then
+            exit 0
+          else
+            exit 1
+          fi
