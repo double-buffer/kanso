@@ -73,7 +73,15 @@ void KernelTrapHandler(CpuTrapFrame* trapFrame)
     CpuLogTrapFrame(trapFrame);
     KernelFailure(String("%s. (Code=%x, Extra=%x)"), errorName, trapCause.Code, trapCause.ExtraInformation);
 }
-
+static void DumpCSRs(const char *tag)
+{
+    uintptr_t sstatus, sie, sip;
+    __asm__ volatile ("csrr %0, sstatus" : "=r"(sstatus));
+    __asm__ volatile ("csrr %0, sie"     : "=r"(sie));
+    __asm__ volatile ("csrr %0, sip"     : "=r"(sip));
+    KernelConsolePrint(String("[%s] sstatus=%x  sie=%x  sip=%x\n"),
+                       tag, sstatus, sie, sip);
+}
 void KernelMain()
 {
     auto platformInformation = PlatformGetInformation();
@@ -90,10 +98,13 @@ void KernelMain()
     KernelConsolePrint(String("Set Trap handler\n"));
     CpuSetTrapHandler(KernelTrapHandler);
     KernelConsolePrint(String("Set Timer\n"));
-    BiosSetTimer(CpuReadTime() + 10000000);
 
     KernelConsolePrint(String("Enable Interrupts\n"));
     CpuEnableInterrupts(CpuInterruptType_All);
+    DumpCSRs("after enable");
+
+    BiosSetTimer(CpuReadTime() + 10000000);
+    DumpCSRs("after set-timer");
 
     KernelConsolePrint(String("Entering loop\n"));
 
