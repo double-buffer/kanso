@@ -82,9 +82,15 @@ void KernelMain()
     KernelConsolePrint(String("(%s %d-bit)\n\n"), platformInformation.Name.Pointer, platformInformation.ArchitectureBits);
     KernelConsoleResetStyle();
 
+    KernelConsolePrint(String("Set Trap handler\n"));
     CpuSetTrapHandler(KernelTrapHandler);
+    KernelConsolePrint(String("Set Timer\n"));
     BiosSetTimer(CpuReadTime() + 10000000);
+
+    KernelConsolePrint(String("Enable Interrupts\n"));
     CpuEnableInterrupts(CpuInterruptType_Timer);
+
+    KernelConsolePrint(String("Entering loop\n"));
 
     while (true)
     {
