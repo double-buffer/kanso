@@ -149,8 +149,8 @@ inline uint64_t CpuReadCycle()
 #endif
 
 inline void CpuGenerateInvalidInstruction()
-{
-    __asm__ volatile ("unimp");
+{ 
+    __asm__ volatile (".word 0xFFFFFFFF");
 }
 
 /* Masks and “all-ones” patterns for the three fields we test. */
