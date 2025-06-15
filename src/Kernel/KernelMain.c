@@ -80,9 +80,7 @@ void KernelMain()
     KernelConsoleSetForegroundColor(KernelConsoleColorHighlight);
     KernelConsolePrint(String("Kanso OS %s "), KANSO_VERSION_FULL);
     KernelConsolePrint(String("(%s %d-bit)\n\n"), platformInformation.Name.Pointer, platformInformation.ArchitectureBits);
-    KernelConsolePrint(String("After Header display\n"));
     KernelConsoleResetStyle();
-    KernelConsolePrint(String("After reset\n"));
 
     KernelConsolePrint(String("Set Trap handler\n"));
     CpuSetTrapHandler(KernelTrapHandler);

@@ -197,8 +197,9 @@ inline void CpuSetTrapHandler(CpuTrapHandler trapHandler)
     if (trapHandler)
     {
         __asm__ volatile(
-          "csrw stvec, %0\n"
-          "csrsi sstatus, 2"
+          "csrw sie,  zero\n"
+          "csrci sstatus, 2\n" 
+          "csrw stvec, %0"
           : 
           : "r" (kernel_trap_entry));
     }
@@ -213,7 +214,8 @@ inline void CpuEnableInterrupts(CpuInterruptType types)
     auto mask = ComputeCpuInterruptMask(types);
 
     __asm__ volatile (
-        "csrs sie, %0"
+        "csrs sie, %0\n"
+        "csrsi sstatus, 2"
         :
         : "r"(mask)
         : "memory"
