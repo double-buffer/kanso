@@ -88,7 +88,8 @@ void KernelMain()
 
     while (true)
     {
-        CpuGenerateInvalidInstruction();
+        KernelConsolePrint(String("Loop WFI\n"));
+        //CpuGenerateInvalidInstruction();
         CpuWaitForInterrupt();
     }   
 }
