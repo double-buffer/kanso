@@ -48,6 +48,10 @@ void KernelTrapHandler(CpuTrapFrame* trapFrame)
                 errorName = String("Address error");
                 break;
 
+            case CpuTrapSynchronousType_Debug:
+                errorName = String("Debug not implemented");
+                break;
+
             case CpuTrapSynchronousType_PageError:
                 errorName = String("Page error");
                 break;

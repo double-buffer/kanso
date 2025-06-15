@@ -150,7 +150,8 @@ inline uint64_t CpuReadCycle()
 
 inline void CpuGenerateInvalidInstruction()
 { 
-    __asm__ volatile (".word 0xFFFFFFFF");
+    //__asm__ volatile (".word 0xFFFFFFFF");
+    __asm__ volatile ("ebreak");
 }
 
 /* Masks and “all-ones” patterns for the three fields we test. */
