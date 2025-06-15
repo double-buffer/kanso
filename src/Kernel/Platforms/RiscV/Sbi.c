@@ -69,16 +69,13 @@ void BiosDebugConsoleWrite(ReadOnlySpanChar message)
 void BiosSetTimer(uint64_t timeValue)
 {
 #if PLATFORM_ARCHITECTURE_BITS == 32
-    SbiCallFunction(SbiExtension_Time, 0x00, (uintptr_t)timeValue, (uintptr_t)(timeValue >> 32), 0, 0, 0, 0);
+    auto rc = SbiCallFunction(SbiExtension_Time, 0x00, (uintptr_t)timeValue, (uintptr_t)(timeValue >> 32), 0, 0, 0, 0);
 #else
-    SbiCallFunction(SbiExtension_Time, 0x00, timeValue, 0, 0, 0, 0, 0);
+    auto rc = SbiCallFunction(SbiExtension_Time, 0x00, timeValue, 0, 0, 0, 0, 0);
 #endif
 
         uint64_t now      = CpuReadTime();
-uint64_t deadline = now + 10'000'000ULL;          /* 2.5 s @ 4 MHz */
-
-SbiReturn rc = SbiCallFunction(SbiExtension_Time, 0,   /* EID=TIME, FID=0 */
-                               deadline, 0, 0, 0, 0, 0);
+uint64_t deadline = timeValue;          /* 2.5 s @ 4 MHz */
 
 KernelConsolePrint(String("set_timer: err=%d val=%lx  now=%lx  dl=%lx\n"),
                    rc.ReturnCode, rc.Value, now, deadline);
