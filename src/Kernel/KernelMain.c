@@ -103,7 +103,7 @@ void KernelMain()
     CpuEnableInterrupts(CpuInterruptType_All);
     DumpCSRs("after enable");
 
-    BiosSetTimer(CpuReadTime() + 10000000);
+    //BiosSetTimer(CpuReadTime() + 10'000'000);
     DumpCSRs("after set-timer");
 
     KernelConsolePrint(String("Entering loop\n"));
@@ -111,6 +111,9 @@ void KernelMain()
     while (true)
     {
         KernelConsolePrint(String("Loop WFI\n"));
+
+
+        __asm__ volatile ("csrs sip, %0" :: "r"(1UL << 1)); 
         //CpuGenerateInvalidInstruction();
         CpuWaitForInterrupt();
     }   
