@@ -14,6 +14,7 @@ const char KernelLogo[] =
 
 void KernelTrapHandler(CpuTrapFrame* trapFrame)
 {
+    KernelConsolePrint(String("Trap Handler\n"));
     auto trapCause = CpuTrapFrameGetCause(trapFrame);
     auto errorName = String("Unknown kernel trap cause");
 

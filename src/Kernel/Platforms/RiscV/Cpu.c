@@ -207,6 +207,12 @@ inline void CpuSetTrapHandler(CpuTrapHandler trapHandler)
     {
         __asm__ volatile("csrsi sstatus, 0");
     }
+
+    uintptr_t v;
+__asm__ volatile ("csrr %0, stvec" : "=r"(v));
+KernelConsolePrint(String("stvec = %x (mode=%s)\n"),
+                   v,
+                   (v & 1) ? "vectored" : "direct");
 }
 
 inline void CpuEnableInterrupts(CpuInterruptType types)
