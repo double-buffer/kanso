@@ -12,34 +12,83 @@ const char KernelLogo[] =
     ,'\0'
 };
 
-__attribute__((interrupt("supervisor")))
-__attribute__((section(".text.interrupt")))
-void KernelSupervisorTrapHandler(CpuTrapFrame* trapFrame)
+void KernelTrapHandler(CpuTrapFrame* trapFrame)
 {
-    auto programCounter = CpuTrapFrameGetProgramCounter(trapFrame);
+    auto trapCause = CpuTrapFrameGetCause(trapFrame);
+    auto errorName = String("Unknown kernel trap cause");
 
-    CpuClearSupervisorPendingInterrupts(CpuInterruptType_Timer);
-    KernelConsolePrint(String("Kernel trap handler: %d (PC=%d).\n"), CpuReadTime(), programCounter);
+    if (trapCause.Type == CpuTrapType_Interrupt)
+    {
+        switch (trapCause.InterruptType)
+        {
+            case CpuInterruptType_Timer:
+                CpuClearPendingInterrupts(CpuInterruptType_Timer);
+                //CpuDisableInterrupts(CpuInterruptType_Timer);
+                //SbiSetTimer((uint64_t)-1);
+                BiosSetTimer(CpuReadTime() + 10000000);
+                
+                auto programCounter = CpuTrapFrameGetProgramCounter(trapFrame);
+                KernelConsolePrint(String("Kernel trap handler: %l (PC=%x).\n"), CpuReadTime(), programCounter);
 
-    //CpuDisableSupervisorInterrupts(CpuInterruptType_Timer);
-    //SbiSetTimer((uint64_t)-1);
-    BiosSetTimer(CpuReadTime() + 10000000);
+                return;
+
+            default:
+                errorName = String("Unknown interrupt type");
+        }
+    }
+    else
+    {
+        switch (trapCause.SynchronousType)
+        {
+            case CpuTrapSynchronousType_InstructionError:
+                errorName = String("Instruction error");
+                break;
+
+            case CpuTrapSynchronousType_AddressError:
+                errorName = String("Address error");
+                break;
+
+            case CpuTrapSynchronousType_PageError:
+                errorName = String("Page error");
+                break;
+
+            case CpuTrapSynchronousType_IntegrityError:
+                errorName = String("Integrity error");
+                break;
+
+            case CpuTrapSynchronousType_HardwareError:
+                errorName = String("Hardware error");
+                break;
+
+            default:
+                errorName = String("Unknown synchronous trap type");
+        }
+    }
+
+    CpuLogTrapFrame(trapFrame);
+    KernelFailure(String("%s. (Code=%x, Extra=%x)"), errorName, trapCause.Code, trapCause.ExtraInformation);
 }
 
 void KernelMain()
 {
     auto platformInformation = PlatformGetInformation();
 
-    KernelConsolePrint(String("\n\n\x1b[36m%s\x1b[0m\n"), KernelLogo);
+    KernelConsoleSetForegroundColor(KernelConsoleColorAccent);
+    KernelConsolePrint(String("\n\n%s\n"), KernelLogo);
+    KernelConsoleResetStyle();
+
+    KernelConsoleSetForegroundColor(KernelConsoleColorHighlight);
     KernelConsolePrint(String("Kanso OS %s "), KANSO_VERSION_FULL);
     KernelConsolePrint(String("(%s %d-bit)\n\n"), platformInformation.Name.Pointer, platformInformation.ArchitectureBits);
+    KernelConsoleResetStyle();
 
-    //CpuSetSupervisorTrapHandler(&KernelSupervisorTrapHandler);
+    CpuSetTrapHandler(KernelTrapHandler);
     BiosSetTimer(CpuReadTime() + 10000000);
-    CpuEnableSupervisorInterrupts(CpuInterruptType_Timer);
+    CpuEnableInterrupts(CpuInterruptType_Timer);
 
     while (true)
     {
+        CpuGenerateInvalidInstruction();
         CpuWaitForInterrupt();
     }   
 }
