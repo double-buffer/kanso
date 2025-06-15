@@ -85,7 +85,7 @@ void KernelMain()
     KernelConsolePrint(String("Set Trap handler\n"));
     CpuSetTrapHandler(KernelTrapHandler);
     KernelConsolePrint(String("Set Timer\n"));
-    BiosSetTimer(CpuReadTime() + 10000000);
+    //BiosSetTimer(CpuReadTime() + 10000000);
 
     KernelConsolePrint(String("Enable Interrupts\n"));
     CpuEnableInterrupts(CpuInterruptType_Timer);
@@ -95,7 +95,7 @@ void KernelMain()
     while (true)
     {
         KernelConsolePrint(String("Loop WFI\n"));
-        //CpuGenerateInvalidInstruction();
+        CpuGenerateInvalidInstruction();
         CpuWaitForInterrupt();
     }   
 }
