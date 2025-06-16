@@ -116,7 +116,7 @@ void DeviceTreeReadNode(BinaryReader* reader, size_t stringDataOffset)
 
         if (length != 4)
         {
-            KernelConsolePrint(String("Unknown length: %d\n"), length);
+            KernelConsolePrint(String("  Unknown length: %d\n"), length);
         }
 
         auto value = BinaryReadUint32(reader);
@@ -126,10 +126,9 @@ void DeviceTreeReadNode(BinaryReader* reader, size_t stringDataOffset)
 
         auto name = StackAllocChar(1024);
         BinaryReadString(reader, &name);
-        KernelConsolePrint(String("Test: %s\n"), name);
 
         BinarySetOffset(reader, MemoryAlignUp(offset, 4));
-        KernelConsolePrint(String("Property: %s, %d\n"), name, value);
+        KernelConsolePrint(String("  Property: %s, %d\n"), name, value);
     }
     else   
     {

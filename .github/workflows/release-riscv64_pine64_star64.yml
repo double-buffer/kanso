@@ -42,7 +42,6 @@ jobs:
       run: |
         make -C u-boot starfive_visionfive2_defconfig
         make -C u-boot -j$(nproc) spl/u-boot-spl.bin
-        make -C u-boot -j$(nproc) dtbs
 
     - name: Pack SPL image with StarFive spl_tool
       run: | 

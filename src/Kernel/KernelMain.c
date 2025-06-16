@@ -95,7 +95,7 @@ void KernelMain()
     CpuSetTrapHandler(KernelTrapHandler);
 
     // TODO: Test Timer only when the hardware is running fine
-    CpuEnableInterrupts(CpuInterruptType_All);
+    CpuEnableInterrupts(CpuInterruptType_Timer);
 
     while (true)
     {
