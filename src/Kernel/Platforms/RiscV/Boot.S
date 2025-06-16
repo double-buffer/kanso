@@ -18,7 +18,13 @@ boot:
     addi  t0, t0, 1
     blt   t0, t1, .Lclear_bss_loop
 
-.Lrun_init_array:
+    # Save boot parameters
+    la    t0, globalBootHartId
+    save_pointer a0, (t0)
+
+    la    t0, globalDeviceTreeData
+    save_pointer a1, (t0)
+
     # Run init array 
     la    t2, __INIT_ARRAY_START
     la    t3, __INIT_ARRAY_END

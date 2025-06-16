@@ -23,6 +23,14 @@ static_assert(sizeof(uintptr_t) == sizeof(void *), "uintptr_t is not pointer-siz
 
 #define PLATFORM_ARCHITECTURE_BITS (__SIZEOF_POINTER__ * 8)
 
+typedef enum
+{
+    ByteOrder_LittleEndian = __ORDER_LITTLE_ENDIAN__,
+    ByteOrder_BigEndian = __ORDER_BIG_ENDIAN__ 
+} ByteOrder;
+
+#define PLATFORM_BYTE_ORDER __BYTE_ORDER__
+
 #define va_list  __builtin_va_list
 #define va_start __builtin_va_start
 #define va_end   __builtin_va_end

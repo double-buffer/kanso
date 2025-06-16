@@ -197,9 +197,9 @@ inline void CpuSetTrapHandler(CpuTrapHandler trapHandler)
     if (trapHandler)
     {
         __asm__ volatile(
-          "csrw sie,  zero\n"
-          "csrci sstatus, 2\n" 
-          "csrw stvec, %0"
+          "csrw   sie, zero\n"
+          "csrci  sstatus, 2\n" 
+          "csrw   stvec, %0"
           : 
           : "r" (kernel_trap_entry));
     }
@@ -207,12 +207,6 @@ inline void CpuSetTrapHandler(CpuTrapHandler trapHandler)
     {
         __asm__ volatile("csrsi sstatus, 0");
     }
-
-    uintptr_t v;
-__asm__ volatile ("csrr %0, stvec" : "=r"(v));
-KernelConsolePrint(String("stvec = %x (mode=%s)\n"),
-                   v,
-                   (v & 1) ? "vectored" : "direct");
 }
 
 inline void CpuEnableInterrupts(CpuInterruptType types)
@@ -220,8 +214,8 @@ inline void CpuEnableInterrupts(CpuInterruptType types)
     auto mask = ComputeCpuInterruptMask(types);
 
     __asm__ volatile (
-        "csrs sie, %0\n"
-        "csrsi sstatus, 2"
+        "csrs   sie, %0\n"
+        "csrsi  sstatus, 2"
         :
         : "r"(mask)
         : "memory"
@@ -259,7 +253,6 @@ inline void CpuWaitForInterrupt()
 
 void LogRegister(ReadOnlySpanChar name, uintptr_t value, uint8_t padding, bool insertTab)
 {
-    // TODO: Color the register name with the keyword blue of VScode?
     KernelConsoleSetForegroundColor(KernelConsoleColorKeyword);
     KernelConsolePrint(String("%s"), name);
     KernelConsoleResetStyle();

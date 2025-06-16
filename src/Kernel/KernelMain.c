@@ -14,7 +14,6 @@ const char KernelLogo[] =
 
 void KernelTrapHandler(CpuTrapFrame* trapFrame)
 {
-    KernelConsolePrint(String("Trap Handler\n"));
     auto trapCause = CpuTrapFrameGetCause(trapFrame);
     auto errorName = String("Unknown kernel trap cause");
 
@@ -26,7 +25,7 @@ void KernelTrapHandler(CpuTrapFrame* trapFrame)
                 CpuClearPendingInterrupts(CpuInterruptType_Timer);
                 //CpuDisableInterrupts(CpuInterruptType_Timer);
                 //SbiSetTimer((uint64_t)-1);
-                BiosSetTimer(CpuReadTime() + 10000000);
+                BiosSetTimer(CpuReadTime() + 10'000'000);
                 
                 auto programCounter = CpuTrapFrameGetProgramCounter(trapFrame);
                 KernelConsolePrint(String("Kernel trap handler: %l (PC=%x).\n"), CpuReadTime(), programCounter);
@@ -73,15 +72,7 @@ void KernelTrapHandler(CpuTrapFrame* trapFrame)
     CpuLogTrapFrame(trapFrame);
     KernelFailure(String("%s. (Code=%x, Extra=%x)"), errorName, trapCause.Code, trapCause.ExtraInformation);
 }
-static void DumpCSRs(const char *tag)
-{
-    uintptr_t sstatus, sie, sip;
-    __asm__ volatile ("csrr %0, sstatus" : "=r"(sstatus));
-    __asm__ volatile ("csrr %0, sie"     : "=r"(sie));
-    __asm__ volatile ("csrr %0, sip"     : "=r"(sip));
-    KernelConsolePrint(String("[%s] sstatus=%x  sie=%x  sip=%x\n"),
-                       tag, sstatus, sie, sip);
-}
+
 void KernelMain()
 {
     auto platformInformation = PlatformGetInformation();
@@ -95,17 +86,20 @@ void KernelMain()
     KernelConsolePrint(String("(%s %d-bit)\n\n"), platformInformation.Name.Pointer, platformInformation.ArchitectureBits);
     KernelConsoleResetStyle();
 
-    CpuSetTrapHandler(KernelTrapHandler);
-    BiosSetTimer(CpuReadTime());
-    DumpCSRs("after set-timer");
+    KernelConsolePrint(String("Boot Cpu ID: %d\n"), platformInformation.BootCpuId);
 
-    KernelConsolePrint(String("Enable Interrupts\n"));
+    auto platformDevices = PlatformGetDevices();
+
+
+    BiosSetTimer(CpuReadTime() + 10'000'000);
+    CpuSetTrapHandler(KernelTrapHandler);
+
+    // TODO: Test Timer only when the hardware is running fine
     CpuEnableInterrupts(CpuInterruptType_All);
-    DumpCSRs("after enable");
 
     while (true)
     {
-        KernelConsolePrint(String("Loop WFI\n"));
+        KernelConsolePrint(String("WFI\n"));
 
         //CpuGenerateInvalidInstruction();
         CpuWaitForInterrupt();

@@ -11,10 +11,16 @@ typedef struct
 {
     ReadOnlySpanChar Name;
     uint32_t ArchitectureBits;
+    uint8_t BootCpuId;
 } PlatformInformation;
 
-PlatformInformation PlatformGetInformation();
+// TODO: We should maybe put that in common and call it SystemDevice or SystemStaticDevice
+typedef struct
+{
+} PlatformDevices;
 
+PlatformInformation PlatformGetInformation();
+PlatformDevices PlatformGetDevices();
 
 // --------------------------------------------------------------------------------------
 // Cpu
@@ -22,10 +28,10 @@ PlatformInformation PlatformGetInformation();
 
 typedef enum
 {
-    CpuInterruptType_None = 0,
-    CpuInterruptType_Software = 1,
-    CpuInterruptType_Timer = 2,
-    CpuInterruptType_External = 4,
+    CpuInterruptType_None = 0x00,
+    CpuInterruptType_Software = 0x01,
+    CpuInterruptType_Timer = 0x02,
+    CpuInterruptType_External = 0x04,
     CpuInterruptType_All = 0xFF,
 } CpuInterruptType;
 
