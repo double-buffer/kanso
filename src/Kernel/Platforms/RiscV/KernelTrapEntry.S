@@ -1,6 +1,6 @@
 #include "AsmCommon.h"
 
-.global kernel_trap_entry # TODO: Rename
+.global kernel_trap_entry
 
 .section .text.interrupt
 

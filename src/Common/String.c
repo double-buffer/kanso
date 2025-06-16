@@ -2,7 +2,7 @@
 
 ReadOnlySpanChar String(const char* string)
 {
-    return MakeReadOnlySpanChar(string, __builtin_strlen(string));
+    return CreateReadOnlySpanChar(string, __builtin_strlen(string));
 }
 
 bool StringEquals(ReadOnlySpanChar string1, ReadOnlySpanChar string2)

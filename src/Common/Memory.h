@@ -11,12 +11,12 @@
     typedef struct Span##name { type* Pointer; size_t Length; } Span##name; \
     typedef struct ReadOnlySpan##name { const type* Pointer; size_t Length; } ReadOnlySpan##name; \
     \
-    static inline Span##name MakeSpan##name(type* pointer, size_t length) \
+    static inline Span##name CreateSpan##name(type* pointer, size_t length) \
     { \
         return (Span##name) { .Pointer = pointer, .Length = length }; \
     } \
     \
-    static inline ReadOnlySpan##name MakeReadOnlySpan##name(const type* pointer, size_t length) \
+    static inline ReadOnlySpan##name CreateReadOnlySpan##name(const type* pointer, size_t length) \
     { \
         return (ReadOnlySpan##name) { .Pointer = pointer, .Length = length }; \
     } \
@@ -30,7 +30,7 @@
     (__extension__ ({ \
         static_assert((length) >= 0, "StackAlloc: length must be an integer-constant expression"); \
         type array[(length)]; \
-        MakeSpan##name(array, (size_t)(length)); \
+        CreateSpan##name(array, (size_t)(length)); \
     }))
 
 DefineSpan(Char, char)

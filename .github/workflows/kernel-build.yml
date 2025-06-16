@@ -15,6 +15,7 @@ jobs:
     steps:
     - name: Checkout sources
       uses: actions/checkout@v4
+      with: { fetch-depth: 0 }
 
     - name: Install LLVM and Clang
       uses: KyleMayes/install-llvm-action@v2

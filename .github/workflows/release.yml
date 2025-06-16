@@ -101,4 +101,4 @@ jobs:
           Changes since `${{ steps.version.outputs.last }}`:
 
           ${{ steps.notes.outputs.notes }}
-        files: ${{ steps.collect.outputs.list }}
+        files: ${{ steps.renamed.outputs.list }}
