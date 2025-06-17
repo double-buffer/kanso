@@ -114,7 +114,7 @@ bool DeviceTreeReadNode(BinaryReader* reader, size_t stringDataOffset)
     }
     else if (testNode == 0x02)
     {
-        KernelConsolePrint(String("EndNode\n"));
+        KernelConsolePrint(String("EndNode.\n"));
     }
     else if (testNode == 0x03)
     {
