@@ -26,6 +26,7 @@ jobs:
     - name: Install CMake
       uses: lukka/get-cmake@latest
 
+    # TODO: On some platforms ARMV7 for example, we should test with different board Virtaul, RPI2B, etc.
     - name: Install QEMU
       run: |
         sudo apt-get update
