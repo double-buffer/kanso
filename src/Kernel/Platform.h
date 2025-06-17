@@ -12,6 +12,7 @@ typedef struct
     ReadOnlySpanChar Name;
     uint32_t ArchitectureBits;
     uint8_t BootCpuId;
+    // TODO: Add Board Name / Computer name / Platform form name
 } PlatformInformation;
 
 // TODO: We should maybe put that in common and call it SystemDevice or SystemStaticDevice

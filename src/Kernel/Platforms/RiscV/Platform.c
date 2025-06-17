@@ -8,6 +8,8 @@
 uintptr_t globalBootHartId;
 uintptr_t globalDeviceTreeData;
 
+// TODO: Merge get devices into one function. But maybe GetInformation is not great
+// because we retrieve the whole device map also
 PlatformInformation PlatformGetInformation()
 {
     return (PlatformInformation)
@@ -22,12 +24,13 @@ PlatformInformation PlatformGetInformation()
 // TODO: We should have a create binary reader that take the encoding and the pointer
 // TODO: It would be cool if it could work with streams but it seems too much
 // TODO: This function should take into account the endianness of the platform
-uint32_t BinaryReadUint32Old(uintptr_t pointer)
+uint32_t ConvertBytesToUint32(ReadOnlySpanUint8 data, ByteOrder byteOrder)
 {
-   // TODO: For now big endian -> little endian conversion
-    auto result = *(uint32_t*)pointer;
+    // TODO: Check length is at least 4
+    // TODO: For now big endian -> little endian conversion
+    auto result = *(uint32_t*)data.Pointer;
 
-    if (PLATFORM_BYTE_ORDER == ByteOrder_LittleEndian)
+    if (PLATFORM_BYTE_ORDER != byteOrder)
     {
         result = __builtin_bswap32(result);
     }
@@ -55,18 +58,22 @@ BinaryReader CreateBinaryReader(ReadOnlySpanUint8 data, ByteOrder byteOrder)
 uint32_t BinaryReadUint32(BinaryReader* reader)
 {
     auto span = SpanSliceFrom(reader->Data, reader->CurrentOffset);
-    // TODO: For now big endian -> little endian conversion
-    // TODO: Do the other conversions
-    auto result = *(uint32_t*)span.Pointer;
-
-    if (PLATFORM_BYTE_ORDER == ByteOrder_LittleEndian)
-    {
-        result = __builtin_bswap32(result);
-    }
-
     reader->CurrentOffset += sizeof(uint32_t);
 
-    return result;
+    return ConvertBytesToUint32(span, reader->ByteOrder);
+}
+
+// TODO: When we have memoryarena we can maybe do better
+void BinaryReadBytes(BinaryReader* reader, size_t length, SpanUint8* output)
+{
+    auto span = SpanSlice(reader->Data, reader->CurrentOffset, length);
+    // TODO: For now big endian -> little endian conversion
+    // TODO: Do the other conversions
+
+    MemoryCopy(*output, span);
+
+    output->Length = length;
+    reader->CurrentOffset += length;
 }
 
 // TODO: When we have memoryarena we can maybe do better
@@ -93,7 +100,7 @@ void BinarySetOffset(BinaryReader* reader, size_t offset)
     reader->CurrentOffset = offset;
 }
 
-void DeviceTreeReadNode(BinaryReader* reader, size_t stringDataOffset)
+bool DeviceTreeReadNode(BinaryReader* reader, size_t stringDataOffset)
 {
     auto testNode = BinaryReadUint32(reader);
 
@@ -114,12 +121,8 @@ void DeviceTreeReadNode(BinaryReader* reader, size_t stringDataOffset)
         auto length = BinaryReadUint32(reader);
         auto nameOffset = BinaryReadUint32(reader);
 
-        if (length != 4)
-        {
-            KernelConsolePrint(String("  Unknown length: %d\n"), length);
-        }
-
-        auto value = BinaryReadUint32(reader);
+        auto value = StackAllocUint8(1024);
+        BinaryReadBytes(reader, length, &value);
 
         auto offset = reader->CurrentOffset;
         BinarySetOffset(reader, stringDataOffset + nameOffset);
@@ -128,21 +131,26 @@ void DeviceTreeReadNode(BinaryReader* reader, size_t stringDataOffset)
         BinaryReadString(reader, &name);
 
         BinarySetOffset(reader, MemoryAlignUp(offset, 4));
-        KernelConsolePrint(String("  Property: %s, %d\n"), name, value);
+        KernelConsolePrint(String("  Property: %s\n"), name);
     }
-    else   
+    else if (testNode == 0x09)
     {
-        KernelConsolePrint(String("Unknown Node: %d\n"), testNode);
+        return false;
     }
+
+    return true;
 }
 
 PlatformDevices PlatformGetDevices()
 {
-    auto dtbMagic = BinaryReadUint32Old(globalDeviceTreeData);
-    auto sizeInBytes = BinaryReadUint32Old(globalDeviceTreeData + sizeof(uint32_t));
+    auto dtbHeaderData = CreateReadOnlySpanUint8((uint8_t*)globalDeviceTreeData, sizeof(uint32_t) * 2);
 
+    auto dtbMagic = ConvertBytesToUint32(dtbHeaderData, ByteOrder_BigEndian);
+    auto sizeInBytes = ConvertBytesToUint32(SpanSliceFrom(dtbHeaderData, sizeof(uint32_t)), ByteOrder_BigEndian);
+
+    KernelConsolePrint(String("MagicDTB: %x\n"), dtbMagic);
     // TODO: Check magic
-    // TODO: Check boot_cpuid_phys
+    // TODO: Verify version
     
     auto dataSpan = CreateReadOnlySpanUint8((const uint8_t*)globalDeviceTreeData, sizeInBytes);
     auto reader = CreateBinaryReader(dataSpan, ByteOrder_BigEndian);
@@ -155,24 +163,9 @@ PlatformDevices PlatformGetDevices()
 
     BinarySetOffset(&reader, structureOffset);
 
-    DeviceTreeReadNode(&reader, stringDataOffset);
-    DeviceTreeReadNode(&reader, stringDataOffset);
-    DeviceTreeReadNode(&reader, stringDataOffset);
-
-    DeviceTreeReadNode(&reader, stringDataOffset);
-    DeviceTreeReadNode(&reader, stringDataOffset);
-    DeviceTreeReadNode(&reader, stringDataOffset);
-
-
-    /* This is a property node parsing
-    testNode = BinaryReadUint32(&reader);
-    length = BinaryReadUint32(&reader);
-    nameOffset = BinaryReadUint32(&reader);
-    KernelConsolePrint(String("TestNode: %d, %d, %d\n"), testNode, length, nameOffset);
-    auto test = SpanSliceFrom(dataSpan, stringDataOffset + nameOffset);
-    KernelConsolePrint(String("Test: %s\n"), test);
-    */
-
+    while (DeviceTreeReadNode(&reader, stringDataOffset))
+    {
+    }
 
     // TODO: We parse DTB here for now but it will be moved in Kernel/Devices/DTB
     return (PlatformDevices)
