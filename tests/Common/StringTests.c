@@ -15,7 +15,7 @@ Test(String, String_HasCorrectValues)
 
     for (uint32_t i = 0; i < result.Length; i++)
     {
-        TestAssertEquals(testString[i], result.Pointer[i]);
+        TestAssertEquals(testString[i], SpanAt(result, i));
     }
 }
 

@@ -55,8 +55,7 @@ DefineSpan(Uint64, uint64_t)
 )
 
 #define SpanSliceFrom(span, offset) SpanSlice((span), (offset), (span).Length - (offset))
-
-// TODO: SpanGetItem?
+#define SpanAt(span, index) (span).Pointer[(index)]
 
 void MemorySetByte(size_t stride, void* destination, size_t destinationLength, const void* value);
 void MemorySetDefault(size_t stride, void* destination, size_t destinationLength, const void* value);

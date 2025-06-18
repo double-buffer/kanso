@@ -14,7 +14,7 @@ bool StringEquals(ReadOnlySpanChar string1, ReadOnlySpanChar string2)
 
     for (uint32_t i = 0; i < string1.Length; i++)
     {
-        if (string1.Pointer[i] != string2.Pointer[i])
+        if (SpanAt(string1, i) != SpanAt(string2, i))
         {
             return false;
         }
@@ -53,7 +53,7 @@ void StringFormatVargs(SpanChar* destination, ReadOnlySpanChar message, va_list 
 
                 case '%':
                 {
-                    destination->Pointer[length++] = '%';
+                    SpanAt(*destination, length++) = '%';
                     break;
                 }
 
@@ -63,7 +63,7 @@ void StringFormatVargs(SpanChar* destination, ReadOnlySpanChar message, va_list 
                     
                     while (*stringArgument) 
                     {
-                        destination->Pointer[length++] = *stringArgument;
+                        SpanAt(*destination, length++) = *stringArgument;
                         stringArgument++;
                     }
                     break;
@@ -77,7 +77,7 @@ void StringFormatVargs(SpanChar* destination, ReadOnlySpanChar message, va_list 
 
                     if (decimalArgument < 0) 
                     {
-                        destination->Pointer[length++] = '-';
+                        SpanAt(*destination, length++) = '-';
                         magnitude = -magnitude;
                     }
 
@@ -90,7 +90,7 @@ void StringFormatVargs(SpanChar* destination, ReadOnlySpanChar message, va_list 
 
                     while (divisor > 0) 
                     {
-                        destination->Pointer[length++] = '0' + magnitude / divisor;
+                        SpanAt(*destination, length++) = '0' + magnitude / divisor;
 
                         magnitude %= divisor;
                         divisor /= 10;
@@ -107,7 +107,7 @@ void StringFormatVargs(SpanChar* destination, ReadOnlySpanChar message, va_list 
 
                     if (decimalArgument < 0) 
                     {
-                        destination->Pointer[length++] = '-';
+                        SpanAt(*destination, length++) = '-';
                         magnitude = -magnitude;
                     }
 
@@ -120,7 +120,7 @@ void StringFormatVargs(SpanChar* destination, ReadOnlySpanChar message, va_list 
 
                     while (divisor > 0) 
                     {
-                        destination->Pointer[length++] = '0' + magnitude / divisor;
+                        SpanAt(*destination, length++) = '0' + magnitude / divisor;
 
                         magnitude %= divisor;
                         divisor /= 10;
@@ -131,13 +131,13 @@ void StringFormatVargs(SpanChar* destination, ReadOnlySpanChar message, va_list 
                 case 'x':
                 {
                     uintptr_t hexaArgument = va_arg(vargs, uintptr_t);
-                    destination->Pointer[length++] = '0';
-                    destination->Pointer[length++] = 'x';
+                    SpanAt(*destination, length++) = '0';
+                    SpanAt(*destination, length++) = 'x';
 
                     for (int32_t i = (sizeof(uintptr_t) * 2) - 1; i >= 0; i--) 
                     {
                         unsigned nibble = (hexaArgument >> (i * 4)) & 0xf;
-                        destination->Pointer[length++] = "0123456789abcdef"[nibble];
+                        SpanAt(*destination, length++) = "0123456789abcdef"[nibble];
                     }
                     break;
                 }
@@ -145,13 +145,13 @@ void StringFormatVargs(SpanChar* destination, ReadOnlySpanChar message, va_list 
         }
         else 
         {
-            destination->Pointer[length++] = *messagePointer;
+            SpanAt(*destination, length++) = *messagePointer;
         }
 
         messagePointer++;
     }
 
     destination->Length = length;
-    destination->Pointer[length] = '\0';
+    SpanAt(*destination, length) = '\0';
 }
 

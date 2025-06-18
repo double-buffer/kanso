@@ -12,6 +12,7 @@ typedef struct
     ReadOnlySpanChar Name;
     uint32_t ArchitectureBits;
     uint8_t BootCpuId;
+    uint32_t PageSize;
     // TODO: Add Board Name / Computer name / Platform form name
 } PlatformInformation;
 

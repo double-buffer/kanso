@@ -14,7 +14,7 @@ Test(Memory, SpanSlice_WithSpan_HasCorrectValues)
 
     for (uint32_t i = 0; i < itemCount; i++)
     {
-        span.Pointer[i] = i;
+        SpanAt(span, i) = i;
     }
     
     // Act
@@ -25,7 +25,7 @@ Test(Memory, SpanSlice_WithSpan_HasCorrectValues)
 
     for (uint32_t i = 0; i < result.Length; i++)
     {
-        TestAssertEquals(span.Pointer[i + sliceOffset], result.Pointer[i]);
+        TestAssertEquals(SpanAt(span, i + sliceOffset), SpanAt(result, i));
     }
 }
 
@@ -39,7 +39,7 @@ Test(Memory, SpanSliceFrom_WithSpan_HasCorrectValues)
 
     for (uint32_t i = 0; i < itemCount; i++)
     {
-        span.Pointer[i] = i;
+        SpanAt(span, i) = i;
     }
     
     // Act
@@ -50,7 +50,7 @@ Test(Memory, SpanSliceFrom_WithSpan_HasCorrectValues)
 
     for (uint32_t i = 0; i < result.Length; i++)
     {
-        TestAssertEquals(span.Pointer[i + sliceOffset], result.Pointer[i]);
+        TestAssertEquals(SpanAt(span, i + sliceOffset), SpanAt(result, i));
     }
 }
 
@@ -68,7 +68,7 @@ Test(Memory, MemorySet_WithUint32_HasCorrectValues)
     // Assert
     for (uint32_t i = 0; i < itemCount; i++)
     {
-        TestAssertEquals(initialValue, destination.Pointer[i]);
+        TestAssertEquals(initialValue, SpanAt(destination, i));
     }
 }
 
@@ -86,7 +86,7 @@ Test(Memory, MemorySet_WithUint8_HasCorrectValues)
     // Assert
     for (uint32_t i = 0; i < itemCount; i++)
     {
-        TestAssertEquals(initialValue, destination.Pointer[i]);
+        TestAssertEquals(initialValue, SpanAt(destination, i));
     }
 }
 
@@ -98,7 +98,7 @@ Test(Memory, MemoryCopy_WithUint32_HasCorrectValues)
 
     for (uint32_t i = 0; i < itemCount; i++)
     {
-        source.Pointer[i] = i;
+        SpanAt(source, i) = i;
     }
     
     auto destination = StackAllocUint32(itemCount);
@@ -110,7 +110,7 @@ Test(Memory, MemoryCopy_WithUint32_HasCorrectValues)
     // Assert
     for (uint32_t i = 0; i < itemCount; i++)
     {
-        TestAssertEquals(i, destination.Pointer[i]);
+        TestAssertEquals(i, SpanAt(destination, i));
     }
 }
 
@@ -122,7 +122,7 @@ Test(Memory, MemoryCopy_WithUint8_HasCorrectValues)
 
     for (uint32_t i = 0; i < itemCount; i++)
     {
-        source.Pointer[i] = i;
+        SpanAt(source, i) = i;
     }
     
     auto destination = StackAllocUint8(itemCount);
@@ -134,6 +134,6 @@ Test(Memory, MemoryCopy_WithUint8_HasCorrectValues)
     // Assert
     for (uint32_t i = 0; i < itemCount; i++)
     {
-        TestAssertEquals(i, destination.Pointer[i]);
+        TestAssertEquals(i, SpanAt(destination, i));
     }
 }

@@ -88,7 +88,7 @@ void KernelMain()
 
     KernelConsolePrint(String("Boot Cpu ID: %d\n"), platformInformation.BootCpuId);
 
-    //auto platformDevices = PlatformGetDevices();
+    auto platformDevices = PlatformGetDevices();
 
 
     BiosSetTimer(CpuReadTime() + 10'000'000);

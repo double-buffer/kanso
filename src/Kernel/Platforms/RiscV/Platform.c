@@ -3,6 +3,8 @@
 #include "String.h"
 #include "Types.h"
 
+#define RISCV_MEMORY_PAGESIZE 4096
+
 // TODO: Add tests
 
 uintptr_t globalBootHartId;
@@ -16,7 +18,8 @@ PlatformInformation PlatformGetInformation()
     {
         .Name = String("RISC-V"),
         .ArchitectureBits = PLATFORM_ARCHITECTURE_BITS,
-        .BootCpuId = globalBootHartId
+        .BootCpuId = globalBootHartId,
+        .PageSize = RISCV_MEMORY_PAGESIZE
     };
 }
 
@@ -33,6 +36,20 @@ uint32_t ConvertBytesToUint32(ReadOnlySpanUint8 data, ByteOrder byteOrder)
     if (PLATFORM_BYTE_ORDER != byteOrder)
     {
         result = __builtin_bswap32(result);
+    }
+
+    return result;
+}
+
+uint64_t ConvertBytesToUint64(ReadOnlySpanUint8 data, ByteOrder byteOrder)
+{
+    // TODO: Check length is at least 4
+    // TODO: For now big endian -> little endian conversion
+    auto result = *(uint64_t*)data.Pointer;
+
+    if (PLATFORM_BYTE_ORDER != byteOrder)
+    {
+        result = __builtin_bswap64(result);
     }
 
     return result;
@@ -63,6 +80,14 @@ uint32_t BinaryReadUint32(BinaryReader* reader)
     return ConvertBytesToUint32(span, reader->ByteOrder);
 }
 
+uint64_t BinaryReadUint64(BinaryReader* reader)
+{
+    auto span = SpanSliceFrom(reader->Data, reader->CurrentOffset);
+    reader->CurrentOffset += sizeof(uint64_t);
+
+    return ConvertBytesToUint64(span, reader->ByteOrder);
+}
+
 // TODO: When we have memoryarena we can maybe do better
 void BinaryReadBytes(BinaryReader* reader, size_t length, SpanUint8* output)
 {
@@ -85,9 +110,9 @@ void BinaryReadString(BinaryReader* reader, SpanChar* output)
 
     uint32_t length = 0;
     
-    while (span.Pointer[length] != '\0')
+    while (SpanAt(span, length) != '\0')
     {
-        output->Pointer[length] = span.Pointer[length];
+        SpanAt(*output, length) = SpanAt(span, length);
         length++;
     }
 
@@ -151,6 +176,8 @@ PlatformDevices PlatformGetDevices()
     KernelConsolePrint(String("MagicDTB: %x\n"), dtbMagic);
     // TODO: Check magic
     // TODO: Verify version
+
+    // TODO: Parse reserved memory area?
     
     auto dataSpan = CreateReadOnlySpanUint8((const uint8_t*)globalDeviceTreeData, sizeInBytes);
     auto reader = CreateBinaryReader(dataSpan, ByteOrder_BigEndian);
@@ -158,8 +185,25 @@ PlatformDevices PlatformGetDevices()
 
     auto structureOffset = BinaryReadUint32(&reader);
     auto stringDataOffset = BinaryReadUint32(&reader);
+    auto reservedMemoryDataOffset = BinaryReadUint32(&reader);
 
     // TODO: Parse the rest of the header
+    BinarySetOffset(&reader, reservedMemoryDataOffset);
+
+    uint64_t reservedOffset = 1;
+    uint64_t reservedSize = 1;
+
+    while (reservedOffset != 0 && reservedSize != 0)
+    {
+        reservedOffset = BinaryReadUint64(&reader);
+        reservedSize = BinaryReadUint64(&reader);
+
+        if (reservedOffset != 0 && reservedSize != 0)
+        {
+            KernelConsolePrint(String("Reserved Memory: %x (size: %x)\n"), reservedOffset, reservedSize);
+        }
+    }
+
 
     BinarySetOffset(&reader, structureOffset);
 
