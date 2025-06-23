@@ -56,7 +56,9 @@ Test(String, StringSplit_WithParameters_HasCorrectValues)
 
     // Assert
     TestAssertEquals(3, destination.Length);
-    //TestAssertStringEquals(String("Test1"), SpanAt(destination, 0));
+    TestAssertStringEquals(String("Test1"), SpanAt(destination, 0));
+    TestAssertStringEquals(String("Test2"), SpanAt(destination, 1));
+    TestAssertStringEquals(String("Test3"), SpanAt(destination, 2));
 }
 
 Test(String, StringFormat_WithParameters_HasCorrectValues)

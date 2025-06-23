@@ -21,10 +21,11 @@ typedef void (*TestLogHandler)(TestRunState state, ReadOnlySpanChar message, ...
 
 typedef struct 
 {
-    const char* Category;
-    const char* Name;
+    ReadOnlySpanChar Category;
+    ReadOnlySpanChar Name;
     TestFunction TestFunction;
     bool HasError;
+    bool CanRun;
 } TestEntry;
 
 
@@ -40,7 +41,7 @@ extern SpanChar globalTestLastErrorMessage;
     [[gnu::constructor]] \
     static void __register_##category##_##name() \
     { \
-        RegisterTest(#category, #name, test_##category##_##name); \
+        RegisterTest(String(#category), String(#name), test_##category##_##name); \
     } \
     \
     static void test_##category##_##name() \
@@ -58,7 +59,6 @@ extern SpanChar globalTestLastErrorMessage;
         } \
     } while (false)
 
-// BUG: There is a bug in the assert only in 32-bit version, when the assert fail maybe due to 64 bit values used in the comparison like with the time
 #define TestAssertEquals(expected, actual) TestAssertCore((expected) == (actual), expected, actual, "==")
 #define TestAssertNotEquals(expected, actual) TestAssertCore((expected) != (actual), expected, actual, "!=")
 #define TestAssertGreaterThan(expected, actual) TestAssertCore((expected) > (actual), expected, actual, ">")
@@ -68,20 +68,22 @@ extern SpanChar globalTestLastErrorMessage;
 // TODO: Adapt the macro like the core one
 #define TestAssertStringEquals(expected, actual) \
     do { \
-        if (expected.Length != actual.Length) \
+        TestEntry* testEntry = &globalTests[globalCurrentTestIndex]; \
+        if (!testEntry->HasError) \
         { \
-            TestEntry* testEntry = &globalTests[globalCurrentTestIndex]; \
-            testEntry->HasError = true; \
-            StringFormat(&globalTestLastErrorMessage, String("%s\n  Expected: (%s.Length) == (%s.Length)\n    Actual: %d == %d"), __FILE__, #expected, #actual, expected.Length, actual.Length); \
-        } \
-        \
-        if (!StringEquals(expected, actual)) \
-        { \
-            TestEntry* testEntry = &globalTests[globalCurrentTestIndex]; \
-            testEntry->HasError = true; \
-            StringFormat(&globalTestLastErrorMessage, String("%s\n  Expected: (%s) == (%s)\n    Actual: \"%s\" == \"%s\""), __FILE__, #expected, #actual, expected.Pointer, actual.Pointer); \
+            if (expected.Length != actual.Length) \
+            { \
+                testEntry->HasError = true; \
+                StringFormat(&globalTestLastErrorMessage, String("%s\n  Expected: (%s.Length) == (%s.Length)\n    Actual: %d == %d"), __FILE__, #expected, #actual, expected.Length, actual.Length); \
+            } \
+            \
+            if (!StringEquals(expected, actual)) \
+            { \
+                testEntry->HasError = true; \
+                StringFormat(&globalTestLastErrorMessage, String("%s\n  Expected: (%s) == (%s)\n    Actual: \"%s\" == \"%s\""), __FILE__, #expected, #actual, expected.Pointer, actual.Pointer); \
+            } \
         } \
     } while (false)
 
-void RegisterTest(const char* category, const char* name, TestFunction testFunction);
+void RegisterTest(ReadOnlySpanChar category, ReadOnlySpanChar name, TestFunction testFunction);
 void TestRun(TestLogHandler handler, ReadOnlySpanChar categoryFilters);

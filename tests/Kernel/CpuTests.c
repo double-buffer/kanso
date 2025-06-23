@@ -7,11 +7,18 @@
 Test(Cpu, CpuReadTime)
 {
     // Arrange
+    const uint32_t iterationCount = 50;
     uint64_t time1 = 0;
     uint64_t time2 = 0;
     
     // Act
     time1 = CpuReadTime();
+    
+    for (uint32_t i = 0; i < iterationCount; i++)
+    {
+        CpuReadTime();
+    }
+
     time2 = CpuReadTime();
 
     // Assert
@@ -23,11 +30,18 @@ Test(Cpu, CpuReadTime)
 Test(Cpu, CpuReadCycle)
 {
     // Arrange
+    const uint32_t iterationCount = 50;
     uint64_t cycle1 = 0;
     uint64_t cycle2 = 0;
     
     // Act
     cycle1 = CpuReadCycle();
+
+    for (uint32_t i = 0; i < iterationCount; i++)
+    {
+        CpuReadCycle();
+    }
+
     cycle2 = CpuReadCycle();
 
     // Assert

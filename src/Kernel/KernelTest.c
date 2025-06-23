@@ -2,8 +2,51 @@
 #include "Test.h"
 #include "String.h"
 #include "KernelConsole.h"
+#include "Kernel.h"
 #include "Platform.h"
 #include "Version.h"
+
+void KernelTrapHandler(CpuTrapFrame* trapFrame)
+{
+    auto trapCause = CpuTrapFrameGetCause(trapFrame);
+    auto errorName = String("Unknown kernel trap cause");
+
+    if (trapCause.Type == CpuTrapType_Synchronous)
+    {
+        switch (trapCause.SynchronousType)
+        {
+            case CpuTrapSynchronousType_InstructionError:
+                errorName = String("Instruction error");
+                break;
+
+            case CpuTrapSynchronousType_AddressError:
+                errorName = String("Address error");
+                break;
+
+            case CpuTrapSynchronousType_Debug:
+                errorName = String("Debug not implemented");
+                break;
+
+            case CpuTrapSynchronousType_PageError:
+                errorName = String("Page error");
+                break;
+
+            case CpuTrapSynchronousType_IntegrityError:
+                errorName = String("Integrity error");
+                break;
+
+            case CpuTrapSynchronousType_HardwareError:
+                errorName = String("Hardware error");
+                break;
+
+            default:
+                errorName = String("Unknown synchronous trap type");
+        }
+    }
+
+    CpuLogTrapFrame(trapFrame);
+    KernelFailure(String("%s. (Code=%x, Extra=%x)"), errorName, trapCause.Code, trapCause.ExtraInformation);
+}
 
 void KernelTestHandler(TestRunState state, ReadOnlySpanChar message, ...)
 {
@@ -48,6 +91,8 @@ void KernelTestHandler(TestRunState state, ReadOnlySpanChar message, ...)
 
 void KernelInit()
 {
+    CpuSetTrapHandler(KernelTrapHandler);
+    
     auto platformInformation = PlatformGetInformation();
 
     KernelConsoleSetForegroundColor(KernelConsoleColorHighlight);
@@ -55,7 +100,7 @@ void KernelInit()
     KernelConsolePrint(String("(%s %d-bit)\n\n"), platformInformation.SystemInformation.Name.Pointer, platformInformation.SystemInformation.ArchitectureBits);
     KernelConsoleResetStyle();
 
-    TestRun(KernelTestHandler, String("Memory|String"));
+    TestRun(KernelTestHandler, String("Memory"));
 }
 
 void KernelMain()

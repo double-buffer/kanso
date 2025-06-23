@@ -75,6 +75,8 @@ void KernelTrapHandler(CpuTrapFrame* trapFrame)
 
 void KernelInit()
 {
+    CpuSetTrapHandler(KernelTrapHandler);
+
     auto platformInformation = PlatformGetInformation();
 
     KernelConsoleSetForegroundColor(KernelConsoleColorAccent);
@@ -92,7 +94,6 @@ void KernelInit()
 void KernelMain()
 {
     BiosSetTimer(CpuReadTime() + 10'000'000);
-    CpuSetTrapHandler(KernelTrapHandler);
 
     // TODO: Test Timer only when the hardware is running fine
     CpuEnableInterrupts(CpuInterruptType_Timer);

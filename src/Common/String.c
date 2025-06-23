@@ -1,4 +1,5 @@
 #include "String.h"
+#include "Memory.h"
 
 ReadOnlySpanChar String(const char* string)
 {
@@ -26,7 +27,21 @@ bool StringEquals(ReadOnlySpanChar string1, ReadOnlySpanChar string2)
 // TODO: Replace that with a memory arena
 void StringSplit(SpanString* result, ReadOnlySpanChar value, char separator)
 {
-    result->Length = 0;
+    auto resultCount = 0;
+    auto currentStartIndex = 0;
+
+    for (uint32_t i = 0; i < value.Length; i++)
+    {
+        if (SpanAt(value, i) == separator)
+        {
+            SpanAt(*result, resultCount++) = SpanSlice(value, currentStartIndex, i - currentStartIndex);
+            currentStartIndex = i + 1;
+        }
+    }
+
+    SpanAt(*result, resultCount++) = SpanSlice(value, currentStartIndex, value.Length - currentStartIndex);
+
+    result->Length = resultCount;
 }
 
 // TODO: Replace that with a memory arena
@@ -39,6 +54,7 @@ void StringFormat(SpanChar* destination, ReadOnlySpanChar message, ...)
 }
 
 // TODO: Refactor this function
+// TODO: It would be cool if we could handle ReadOnlySpan so we can take the length not until \0
 void StringFormatVargs(SpanChar* destination, ReadOnlySpanChar message, va_list vargs)
 {
     uint32_t length = 0;
