@@ -19,23 +19,6 @@ Test(String, String_HasCorrectValues)
     }
 }
 
-Test(String, StringFormat_WithParameters_HasCorrectValues)
-{
-    // Arrange
-    const auto testString = String("Test: %d, %s");
-    const auto intParameter = 28;
-    const auto stringParameter = String("TestParameter");
-    
-    const auto finalString = String("Test: 28, TestParameter"); 
-    auto destination = StackAllocChar(64);
-
-    // Act
-    StringFormat(&destination, testString, intParameter, stringParameter);
-
-    // Assert
-    TestAssertStringEquals(finalString, ToReadOnlySpanChar(destination));
-}
-
 Test(String, StringEquals_WithSameStrings_ReturnsTrue)
 {
     // Arrange
@@ -61,3 +44,35 @@ Test(String, StringEquals_WithDifferentStrings_ReturnsFalse)
     // Assert
     TestAssertEquals(false, result);
 }
+
+Test(String, StringSplit_WithParameters_HasCorrectValues)
+{
+    // Arrange
+    const auto testString = String("Test1|Test2|Test3");
+    auto destination = StackAllocString(64);
+
+    // Act
+    StringSplit(&destination, testString, '|');
+
+    // Assert
+    TestAssertEquals(3, destination.Length);
+    //TestAssertStringEquals(String("Test1"), SpanAt(destination, 0));
+}
+
+Test(String, StringFormat_WithParameters_HasCorrectValues)
+{
+    // Arrange
+    const auto testString = String("Test: %d, %s");
+    const auto intParameter = 28;
+    const auto stringParameter = String("TestParameter");
+    
+    const auto finalString = String("Test: 28, TestParameter"); 
+    auto destination = StackAllocChar(64);
+
+    // Act
+    StringFormat(&destination, testString, intParameter, stringParameter);
+
+    // Assert
+    TestAssertStringEquals(finalString, ToReadOnlySpanChar(destination));
+}
+

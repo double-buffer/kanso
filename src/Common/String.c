@@ -23,6 +23,13 @@ bool StringEquals(ReadOnlySpanChar string1, ReadOnlySpanChar string2)
     return true;
 }
 
+// TODO: Replace that with a memory arena
+void StringSplit(SpanString* result, ReadOnlySpanChar value, char separator)
+{
+    result->Length = 0;
+}
+
+// TODO: Replace that with a memory arena
 void StringFormat(SpanChar* destination, ReadOnlySpanChar message, ...)
 {
     va_list vargs;
@@ -154,4 +161,3 @@ void StringFormatVargs(SpanChar* destination, ReadOnlySpanChar message, va_list 
     destination->Length = length;
     SpanAt(*destination, length) = '\0';
 }
-

@@ -2,10 +2,19 @@
 
 #include "Types.h"
 
+//---------------------------------------------------------------------------------------
+// General
+//---------------------------------------------------------------------------------------
+
 #define MemoryAlignUp(value, align) __builtin_align_up(value, align)
 #define MemoryIsAligned(value, align) __builtin_is_aligned(value, align)
 #define MemoryOffsetOf(type, member) __builtin_offsetof(type, member)
 
+#define ArraySize(a) (sizeof(a) / sizeof(*(a)))
+
+//---------------------------------------------------------------------------------------
+// Span
+//---------------------------------------------------------------------------------------
 
 #define DefineSpan(name, type) \
     typedef struct Span##name { type* Pointer; size_t Length; } Span##name; \
@@ -45,6 +54,8 @@ DefineSpan(Uint32, uint32_t)
 DefineSpan(Uint64, uint64_t)
 #define StackAllocUint64(length) DefineSpanStackAlloc(Uint64, uint64_t, (length))
 
+// TODO: Span casting functions (do tests)
+
 #define SpanSlice(span, offset, length) \
 ( \
     (typeof(span)) \
@@ -79,20 +90,48 @@ void MemoryCopyDefault(size_t stride, void* destination, size_t destinationLengt
     )(sizeof(*(destination).Pointer), (destination).Pointer, (destination).Length, (source).Pointer, (source).Length)
 
 
-#define _IS_READONLY_SPAN(span)                                            \
-        __builtin_types_compatible_p(                                      \
-                __typeof__((span).Pointer),                                \
-                const __typeof__(*(span).Pointer) *)
+#define _IS_READONLY_SPAN(span) \
+        __builtin_types_compatible_p( \
+                typeof((span).Pointer), \
+                const typeof(*(span).Pointer) *)
 
-#define _ASSERT_READONLY_SPAN(src)                                         \
-        _Static_assert( _IS_READONLY_SPAN(src),                            \
-                        "MemoryCopy: source span must be read-only")
+#define _ASSERT_READONLY_SPAN(source) \
+        static_assert(_IS_READONLY_SPAN(source), "MemoryCopy: source span must be read-only")
 
-#define MemoryCopy(destination, source)                                           \
-    do {                                                                          \
-        _ASSERT_READONLY_SPAN(source);         \
-        _MemoryCopyDispatch((destination), (source));                             \
-    } while (0)
+#define MemoryCopy(destination, source) \
+    do { \
+        _ASSERT_READONLY_SPAN(source); \
+        _MemoryCopyDispatch((destination), (source)); \
+    } while (false)
+
+//---------------------------------------------------------------------------------------
+// Memory Allocation
+//---------------------------------------------------------------------------------------
+
+typedef enum
+{
+    MemoryAccess_Read,
+    MemoryAccess_ReadWrite,
+    MemoryAccess_Execute,
+    MemoryAccess_ExecuteRead,
+    MemoryAccess_ExecuteReadWrite
+} MemoryAccess;
+
+typedef struct
+{
+    void* BaseAddress;
+    size_t PageCount;
+} MemoryReservation;
+
+MemoryReservation MemoryReservePages(size_t pageCount);
+bool MemoryRelease(MemoryReservation* memoryReservation);
+
+bool MemoryCommitPages(const MemoryReservation* memoryReservation, size_t pageOffset, size_t pageCount, MemoryAccess access);
+bool MemoryDecommitPages(const MemoryReservation* memoryReservation, size_t pageOffset, size_t pageCount);
+
+//---------------------------------------------------------------------------------------
+// Memory Arena
+//---------------------------------------------------------------------------------------
 
 
 

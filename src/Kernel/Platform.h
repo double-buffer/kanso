@@ -1,28 +1,28 @@
 #pragma once
 
 #include "Memory.h"
+#include "System.h"
 #include "Types.h"
 
 // --------------------------------------------------------------------------------------
 // General
 // --------------------------------------------------------------------------------------
 
-typedef struct
-{
-    ReadOnlySpanChar Name;
-    uint32_t ArchitectureBits;
-    uint8_t BootCpuId;
-    uint32_t PageSize;
-    // TODO: Add Board Name / Computer name / Platform form name
-} PlatformInformation;
-
 // TODO: We should maybe put that in common and call it SystemDevice or SystemStaticDevice
 typedef struct
 {
 } PlatformDevices;
 
+typedef struct
+{
+    SystemInformation SystemInformation;
+    uint8_t BootCpuId;
+    SpanUint8 InitHeap;
+    // TODO: Add Board Name / Computer name / Platform form name
+    PlatformDevices Devices;
+} PlatformInformation;
+
 PlatformInformation PlatformGetInformation();
-PlatformDevices PlatformGetDevices();
 
 // --------------------------------------------------------------------------------------
 // Cpu

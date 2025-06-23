@@ -46,16 +46,28 @@ void KernelTestHandler(TestRunState state, ReadOnlySpanChar message, ...)
     va_end(vargs);
 }
 
+void KernelInit()
+{
+    auto platformInformation = PlatformGetInformation();
+
+    KernelConsoleSetForegroundColor(KernelConsoleColorHighlight);
+    KernelConsolePrint(String("\n\nKanso OS KernelInit Tests %s "), KANSO_VERSION_FULL);
+    KernelConsolePrint(String("(%s %d-bit)\n\n"), platformInformation.SystemInformation.Name.Pointer, platformInformation.SystemInformation.ArchitectureBits);
+    KernelConsoleResetStyle();
+
+    TestRun(KernelTestHandler, String("Memory|String"));
+}
+
 void KernelMain()
 {
     auto platformInformation = PlatformGetInformation();
 
     KernelConsoleSetForegroundColor(KernelConsoleColorHighlight);
-    KernelConsolePrint(String("\n\nKanso OS Kernel Tests %s "), KANSO_VERSION_FULL);
-    KernelConsolePrint(String("(%s %d-bit)\n\n"), platformInformation.Name.Pointer, platformInformation.ArchitectureBits);
+    KernelConsolePrint(String("\n\nKanso OS KernelMain Tests %s "), KANSO_VERSION_FULL);
+    KernelConsolePrint(String("(%s %d-bit)\n\n"), platformInformation.SystemInformation.Name.Pointer, platformInformation.SystemInformation.ArchitectureBits);
     KernelConsoleResetStyle();
 
-    TestRun(KernelTestHandler);
+    TestRun(KernelTestHandler, String(""));
     BiosReset(BiosResetType_Shutdown, BiosResetReason_None);
 }
 

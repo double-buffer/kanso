@@ -1,9 +1,10 @@
 #include "Test.h"
+#include "Memory.h"
 
 TestEntry globalTests[MAX_TESTS];
 uint32_t globalTestCount = 0;
 uint32_t globalCurrentTestIndex = 0;
-SpanChar globalTestLastErrorMessage;
+SpanChar globalTestLastErrorMessage = {};
 
 void RegisterTest(const char* category, const char* name, TestFunction testFunction)
 {
@@ -18,7 +19,7 @@ void RegisterTest(const char* category, const char* name, TestFunction testFunct
     };
 }
 
-void TestRun(TestLogHandler handler)
+void TestRun(TestLogHandler handler, ReadOnlySpanChar categoryFilters)
 {
     uint32_t failedCounter = 0;
     globalTestLastErrorMessage = StackAllocChar(TEST_ERROR_MESSAGE_LENGTH);
@@ -29,6 +30,15 @@ void TestRun(TestLogHandler handler)
     {
         auto test = &globalTests[i];
         globalCurrentTestIndex = i;
+
+        if (categoryFilters.Length > 0)
+        {
+            // TODO: Split
+            for (uint32_t j = 0; j < categoryFilters.Length; j++)
+            {
+        handler(TestRunState_Start, String("Checking Category: %s.%s"), test->Category, test->Name);
+            }
+        }
 
         handler(TestRunState_Start, String("%s.%s"), test->Category, test->Name);
 

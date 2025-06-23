@@ -63,11 +63,12 @@ extern SpanChar globalTestLastErrorMessage;
 #define TestAssertNotEquals(expected, actual) TestAssertCore((expected) != (actual), expected, actual, "!=")
 #define TestAssertGreaterThan(expected, actual) TestAssertCore((expected) > (actual), expected, actual, ">")
 #define TestAssertIsTrue(actual) TestAssertCore(true == (actual), true, actual, "==")
+#define TestAssertIsFalse(actual) TestAssertCore(false == (actual), false, actual, "==")
 
 // TODO: Adapt the macro like the core one
 #define TestAssertStringEquals(expected, actual) \
     do { \
-        if (finalString.Length != destination.Length) \
+        if (expected.Length != actual.Length) \
         { \
             TestEntry* testEntry = &globalTests[globalCurrentTestIndex]; \
             testEntry->HasError = true; \
@@ -83,4 +84,4 @@ extern SpanChar globalTestLastErrorMessage;
     } while (false)
 
 void RegisterTest(const char* category, const char* name, TestFunction testFunction);
-void TestRun(TestLogHandler handler);
+void TestRun(TestLogHandler handler, ReadOnlySpanChar categoryFilters);

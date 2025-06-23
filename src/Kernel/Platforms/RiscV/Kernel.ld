@@ -45,4 +45,8 @@ SECTIONS
     . = ALIGN(8);
     . += 128 * 1024; /* 128KB */
     __STACK_PTR = .;
+    . = ALIGN(4096);
+    __INIT_HEAP_START = .;
+    . += 64 * 1024 * 1024; /* 64MB, TODO: Review this later, we don't need that much for init mode */
+    __INIT_HEAP_END = .;
 }

@@ -6,21 +6,34 @@
 #define RISCV_MEMORY_PAGESIZE 4096
 
 // TODO: Add tests
+extern uint8_t __INIT_HEAP_START[];
+extern uint8_t __INIT_HEAP_END[];
 
 uintptr_t globalBootHartId;
 uintptr_t globalDeviceTreeData;
+
+PlatformInformation globalPlatformInformation = {};
 
 // TODO: Merge get devices into one function. But maybe GetInformation is not great
 // because we retrieve the whole device map also
 PlatformInformation PlatformGetInformation()
 {
-    return (PlatformInformation)
+    if (globalPlatformInformation.SystemInformation.ArchitectureBits == 0)
     {
-        .Name = String("RISC-V"),
-        .ArchitectureBits = PLATFORM_ARCHITECTURE_BITS,
-        .BootCpuId = globalBootHartId,
-        .PageSize = RISCV_MEMORY_PAGESIZE
-    };
+        globalPlatformInformation = (PlatformInformation)
+        {
+            .SystemInformation = 
+            {
+                .Name = String("RISC-V"),
+                .ArchitectureBits = PLATFORM_ARCHITECTURE_BITS,
+                .PageSize = RISCV_MEMORY_PAGESIZE
+            },
+            .BootCpuId = globalBootHartId,
+            .InitHeap = CreateSpanUint8(__INIT_HEAP_START, __INIT_HEAP_END - __INIT_HEAP_START)
+        };
+    }
+
+    return globalPlatformInformation;
 }
 
 // TODO: Put that in a common binary reader or similar and do tests

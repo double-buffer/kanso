@@ -1,5 +1,9 @@
 #include "Memory.h"
 
+// --------------------------------------------------------------------------------------
+// Span
+// --------------------------------------------------------------------------------------
+
 void MemorySetByte(size_t stride, void* destination, size_t destinationLength, const void* value)
 {
     (void)stride;
@@ -53,6 +57,11 @@ void MemoryCopyDefault(size_t stride, void* destination, size_t destinationLengt
         }
     }
 }
+
+// --------------------------------------------------------------------------------------
+// MemoryArena
+// --------------------------------------------------------------------------------------
+
 
 // TODO: Move that to the standard library
 
