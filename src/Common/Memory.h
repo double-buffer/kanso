@@ -3,70 +3,27 @@
 #include "Types.h"
 
 //---------------------------------------------------------------------------------------
+// Error Handling
+//---------------------------------------------------------------------------------------
+
+typedef enum 
+{
+    MemoryError_None,
+    MemoryError_InvalidParameter,
+    MemoryError_OutOfMemory
+} MemoryError;
+
+// TODO: This will need to be thread local
+extern MemoryError globalMemoryError;
+
+static inline MemoryError MemoryGetLastError()
+{
+    return globalMemoryError;
+}
+
+//---------------------------------------------------------------------------------------
 // General
 //---------------------------------------------------------------------------------------
-
-#define MemoryAlignUp(value, align) __builtin_align_up(value, align)
-#define MemoryIsAligned(value, align) __builtin_is_aligned(value, align)
-#define MemoryOffsetOf(type, member) __builtin_offsetof(type, member)
-
-#define ArraySize(a) (sizeof(a) / sizeof(*(a)))
-
-//---------------------------------------------------------------------------------------
-// Span
-//---------------------------------------------------------------------------------------
-
-#define DefineSpan(name, type) \
-    typedef struct Span##name { type* Pointer; size_t Length; } Span##name; \
-    typedef struct ReadOnlySpan##name { const type* Pointer; size_t Length; } ReadOnlySpan##name; \
-    \
-    static inline Span##name CreateSpan##name(type* pointer, size_t length) \
-    { \
-        return (Span##name) { .Pointer = pointer, .Length = length }; \
-    } \
-    \
-    static inline ReadOnlySpan##name CreateReadOnlySpan##name(const type* pointer, size_t length) \
-    { \
-        return (ReadOnlySpan##name) { .Pointer = pointer, .Length = length }; \
-    } \
-    \
-    static inline ReadOnlySpan##name ToReadOnlySpan##name(Span##name span) \
-    { \
-        return (ReadOnlySpan##name) { .Pointer = span.Pointer, .Length = span.Length }; \
-    }
-
-#define DefineSpanStackAlloc(name, type, length) \
-    (__extension__ ({ \
-        static_assert((length) >= 0, "StackAlloc: length must be an integer-constant expression"); \
-        type array[(length)]; \
-        CreateSpan##name(array, (size_t)(length)); \
-    }))
-
-DefineSpan(Char, char)
-#define StackAllocChar(length) DefineSpanStackAlloc(Char, char, (length))
-
-DefineSpan(Uint8, uint8_t)
-#define StackAllocUint8(length) DefineSpanStackAlloc(Uint8, uint8_t, (length))
-
-DefineSpan(Uint32, uint32_t)
-#define StackAllocUint32(length) DefineSpanStackAlloc(Uint32, uint32_t, (length))
-
-DefineSpan(Uint64, uint64_t)
-#define StackAllocUint64(length) DefineSpanStackAlloc(Uint64, uint64_t, (length))
-
-// TODO: Span casting functions (do tests)
-
-#define SpanSlice(span, offset, length) \
-( \
-    (typeof(span)) \
-    { \
-        .Pointer = (span).Pointer + (offset), \
-        .Length  = (length) \
-    } \
-)
-
-#define SpanSliceFrom(span, offset) SpanSlice((span), (offset), (span).Length - (offset))
-#define SpanAt(span, index) (span).Pointer[(index)]
 
 void MemorySetByte(size_t stride, void* destination, size_t destinationLength, const void* value);
 void MemorySetDefault(size_t stride, void* destination, size_t destinationLength, const void* value);
@@ -78,6 +35,8 @@ void MemorySetDefault(size_t stride, void* destination, size_t destinationLength
         default: MemorySetDefault \
     )(sizeof(*(destination).Pointer), (destination).Pointer, (destination).Length, &(typeof(*(destination).Pointer)){ (value) })
 
+
+// TODO: Add Errors
 
 void MemoryCopyByte(size_t stride, void* destination, size_t destinationLength, const void* source, size_t sourceLength);
 void MemoryCopyDefault(size_t stride, void* destination, size_t destinationLength, const void* source, size_t sourceLength);
@@ -123,6 +82,14 @@ typedef struct
     size_t PageCount;
 } MemoryReservation;
 
+#define MEMORY_RESERVATION_EMPTY ((MemoryReservation){ .BaseAddress = nullptr, .PageCount = 0 })
+
+
+static inline bool MemoryReservationIsEmpty(MemoryReservation memoryReservation)
+{
+    return memoryReservation.BaseAddress == nullptr;
+}
+
 MemoryReservation MemoryReservePages(size_t pageCount);
 bool MemoryRelease(MemoryReservation* memoryReservation);
 
@@ -133,7 +100,3 @@ bool MemoryDecommitPages(const MemoryReservation* memoryReservation, size_t page
 // Memory Arena
 //---------------------------------------------------------------------------------------
 
-
-
-// TODO: Move that to the standard library
-void memset(uint8_t* destination, uint8_t value, size_t sizeInBytes); 

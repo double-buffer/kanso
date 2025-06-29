@@ -100,7 +100,7 @@ void KernelInit()
     KernelConsolePrint(String("(%s %d-bit)\n\n"), platformInformation.SystemInformation.Name.Pointer, platformInformation.SystemInformation.ArchitectureBits);
     KernelConsoleResetStyle();
 
-    TestRun(KernelTestHandler, String("Memory"));
+    TestRun(KernelTestHandler, String("Types|Memory"));
 }
 
 void KernelMain()
@@ -112,7 +112,7 @@ void KernelMain()
     KernelConsolePrint(String("(%s %d-bit)\n\n"), platformInformation.SystemInformation.Name.Pointer, platformInformation.SystemInformation.ArchitectureBits);
     KernelConsoleResetStyle();
 
-    TestRun(KernelTestHandler, String(""));
+    //TestRun(KernelTestHandler, String(""));
     BiosReset(BiosResetType_Shutdown, BiosResetReason_None);
 }
 

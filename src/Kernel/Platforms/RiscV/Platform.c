@@ -48,6 +48,7 @@ uint32_t ConvertBytesToUint32(ReadOnlySpanUint8 data, ByteOrder byteOrder)
 
     if (PLATFORM_BYTE_ORDER != byteOrder)
     {
+        // TODO: Put that in Types.h
         result = __builtin_bswap32(result);
     }
 
@@ -62,6 +63,7 @@ uint64_t ConvertBytesToUint64(ReadOnlySpanUint8 data, ByteOrder byteOrder)
 
     if (PLATFORM_BYTE_ORDER != byteOrder)
     {
+        // TODO: Put that in Types.h
         result = __builtin_bswap64(result);
     }
 
@@ -146,7 +148,7 @@ bool DeviceTreeReadNode(BinaryReader* reader, size_t stringDataOffset)
     {
         auto name = StackAllocChar(1024);
         BinaryReadString(reader, &name);
-        BinarySetOffset(reader, MemoryAlignUp(reader->CurrentOffset, 4));
+        BinarySetOffset(reader, AlignUp(reader->CurrentOffset, 4));
 
         KernelConsolePrint(String("BeginNode: '%s'\n"), name);
     }
@@ -168,7 +170,7 @@ bool DeviceTreeReadNode(BinaryReader* reader, size_t stringDataOffset)
         auto name = StackAllocChar(1024);
         BinaryReadString(reader, &name);
 
-        BinarySetOffset(reader, MemoryAlignUp(offset, 4));
+        BinarySetOffset(reader, AlignUp(offset, 4));
         KernelConsolePrint(String("  Property: %s\n"), name);
     }
     else if (testNode == 0x09)

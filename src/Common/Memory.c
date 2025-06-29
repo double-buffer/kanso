@@ -1,19 +1,17 @@
 #include "Memory.h"
 
-// --------------------------------------------------------------------------------------
+// TODO: This will need to be thread local
+MemoryError globalMemoryError = MemoryError_None;
+
+//---------------------------------------------------------------------------------------
 // Span
-// --------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
 
 void MemorySetByte(size_t stride, void* destination, size_t destinationLength, const void* value)
 {
     (void)stride;
-    uint8_t* pointer = destination;
     uint8_t byteValue = *(uint8_t*)value;
-
-    for (size_t i = 0; i < destinationLength; i++)
-    {
-        pointer[i] = byteValue;
-    }
+    __builtin_memset(destination, byteValue, destinationLength);   
 }
 
 void MemorySetDefault(size_t stride, void* destination, size_t destinationLength, const void* value)
@@ -36,10 +34,7 @@ void MemoryCopyByte(size_t stride, void* destination, size_t destinationLength, 
     // TODO: Check length
     (void)destinationLength;
 
-    for (size_t i = 0; i < sourceLength; i++)
-    {
-        ((uint8_t*)destination)[i] = ((uint8_t*)source)[i];
-    }
+    __builtin_memcpy(destination, source, sourceLength);
 }
 
 void MemoryCopyDefault(size_t stride, void* destination, size_t destinationLength, const void* source, size_t sourceLength)
@@ -58,10 +53,9 @@ void MemoryCopyDefault(size_t stride, void* destination, size_t destinationLengt
     }
 }
 
-// --------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
 // MemoryArena
-// --------------------------------------------------------------------------------------
-
+//---------------------------------------------------------------------------------------
 
 // TODO: Move that to the standard library
 
@@ -79,5 +73,18 @@ size_t strlen(const char* string)
 
 void memset(uint8_t* destination, uint8_t value, size_t sizeInBytes) 
 {
-    MemorySetByte(sizeof(uint8_t), destination, sizeInBytes, &value);
+    for (size_t i = 0; i < sizeInBytes; i++)
+    {
+        destination[i] = value;
+    }
+}
+
+void* memcpy(uint8_t* destination, const uint8_t* source, size_t sizeInBytes)
+{
+    for (size_t i = 0; i < sizeInBytes; i++)
+    {
+        destination[i] = source[i];
+    }
+
+    return destination;
 }

@@ -251,7 +251,7 @@ inline void CpuWaitForInterrupt()
     __asm__ __volatile__("wfi" ::: "memory");
 }
 
-void LogRegister(ReadOnlySpanChar name, uintptr_t value, uint8_t padding, bool insertTab)
+static void LogRegister(ReadOnlySpanChar name, uintptr_t value, uint8_t padding, bool insertTab)
 {
     KernelConsoleSetForegroundColor(KernelConsoleColorKeyword);
     KernelConsolePrint(String("%s"), name);
@@ -278,7 +278,7 @@ void LogRegister(ReadOnlySpanChar name, uintptr_t value, uint8_t padding, bool i
     }
 }
 
-void LogGeneralPurposeRegisters(const GeneralPurposeRegisters* generalPurposeRegisters)
+static void LogGeneralPurposeRegisters(const GeneralPurposeRegisters* generalPurposeRegisters)
 {
     LogRegister(String("ra"), generalPurposeRegisters->RA, 2, true);
     LogRegister(String("sp"), generalPurposeRegisters->SP, 2, true);
@@ -323,7 +323,7 @@ void LogGeneralPurposeRegisters(const GeneralPurposeRegisters* generalPurposeReg
     LogRegister(String("t6"), generalPurposeRegisters->T6, 2, false);
 }
 
-void LogSupervisorRegisters(const SupervisorRegisters* supervisorRegisters)
+static void LogSupervisorRegisters(const SupervisorRegisters* supervisorRegisters)
 {
     LogRegister(String("sepc"), supervisorRegisters->Epc, 3, true);
     LogRegister(String("sstatus"), supervisorRegisters->Status, 1, true);

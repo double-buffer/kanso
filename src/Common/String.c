@@ -1,11 +1,6 @@
 #include "String.h"
 #include "Memory.h"
 
-ReadOnlySpanChar String(const char* string)
-{
-    return CreateReadOnlySpanChar(string, __builtin_strlen(string));
-}
-
 bool StringEquals(ReadOnlySpanChar string1, ReadOnlySpanChar string2)
 {
     if (string1.Length != string2.Length)

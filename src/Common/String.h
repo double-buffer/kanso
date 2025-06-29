@@ -6,7 +6,11 @@
 DefineSpan(String, ReadOnlySpanChar)
 #define StackAllocString(length) DefineSpanStackAlloc(String, ReadOnlySpanChar, (length))
 
-ReadOnlySpanChar String(const char* string);
+static inline ReadOnlySpanChar String(const char* string)
+{
+    return CreateReadOnlySpanChar(string, __builtin_strlen(string));
+}
+
 bool StringEquals(ReadOnlySpanChar string1, ReadOnlySpanChar string2);
 
 // TODO: Replace that with a memory arena

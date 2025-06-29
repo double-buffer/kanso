@@ -66,6 +66,11 @@ void TestRun(TestLogHandler handler, ReadOnlySpanChar categoryFilters)
         test->HasError = false;
         globalCurrentTestIndex = i;
 
+        if (!test->CanRun)
+        {
+            continue;
+        }
+
         handler(TestRunState_Start, String("%s.%s"), test->Category.Pointer, test->Name.Pointer);
 
         test->TestFunction();
