@@ -27,11 +27,19 @@ static_assert(sizeof(uintptr_t) == sizeof(void *), "uintptr_t is not pointer-siz
 
 #define PLATFORM_ARCHITECTURE_BITS (__SIZEOF_POINTER__ * 8)
 #define BITS_PER_BYTE 8u
+#define BITS_PER_SIZE_TYPE (sizeof(size_t) * BITS_PER_BYTE)
+#define MASK_SIZE_TYPE (BITS_PER_SIZE_TYPE - 1)
 
 #define AlignUp(value, align) __builtin_align_up(value, align)
 #define IsAligned(value, align) __builtin_is_aligned(value, align)
 #define OffsetOf(type, member) __builtin_offsetof(type, member)
 
+// TODO: Cleanup
+#if  __SIZEOF_SIZE_T__ == 8
+#define CoutTrailingZeros(x)  __builtin_ctzll((unsigned long long)(x))
+#elif __SIZEOF_SIZE_T__ == 4
+#define CoutTrailingZeros(x)  __builtin_ctz((unsigned int)(x))
+#  endif
 
 //---------------------------------------------------------------------------------------
 // Variable parameters
@@ -49,8 +57,7 @@ static_assert(sizeof(uintptr_t) == sizeof(void *), "uintptr_t is not pointer-siz
 typedef enum 
 {
     TypeError_None,
-    TypeError_InvalidParameter,
-    TypeError_Unaligned
+    TypeError_InvalidParameter
 } TypeError;
 
 // TODO: This will need to be thread local
@@ -153,7 +160,7 @@ DefineSpan(Size, size_t)
 
 typedef struct
 {
-    SpanUint8 Data;
+    SpanSize Data;
     size_t BitCount;
 } BitArray;
 
@@ -164,38 +171,26 @@ static inline bool BitArrayIsEmpty(BitArray bitArray)
     return bitArray.Data.Pointer == nullptr;
 }
 
-static inline BitArray CreateBitArray(SpanUint8 data, size_t bitCount)
+static inline BitArray CreateBitArray(SpanSize data)
 {
-    if (bitCount > (data.Length * BITS_PER_BYTE))
-    {
-        globalTypeError = TypeError_InvalidParameter;
-        return BIT_ARRAY_EMPTY;
-    }
-
-    if (!IsAligned(data.Pointer, sizeof(size_t)))
-    {
-        globalTypeError = TypeError_Unaligned;
-        return BIT_ARRAY_EMPTY;
-    }
-
     globalTypeError = TypeError_None;
 
     return (BitArray)
     {
         .Data = data,
-        .BitCount = bitCount
+        .BitCount = data.Length * BITS_PER_SIZE_TYPE
     };
 }
 
 static inline bool BitArraySet(BitArray bitArray, size_t index)
 {
-    if (index >= bitArray.BitCount) 
+    if (index >= bitArray.BitCount || BitArrayIsEmpty(bitArray)) 
     {
         globalTypeError = TypeError_InvalidParameter;
         return false;
     }
 
-    // TODO: With aligned size_t
+    bitArray.Data.Pointer[index / BITS_PER_SIZE_TYPE] |= (size_t)1 << (index & MASK_SIZE_TYPE);
 
     globalTypeError = TypeError_None;
     return true;
@@ -203,15 +198,33 @@ static inline bool BitArraySet(BitArray bitArray, size_t index)
 
 static inline bool BitArrayReset(BitArray bitArray, size_t index)
 {
-    return false;
+    if (index >= bitArray.BitCount || BitArrayIsEmpty(bitArray)) 
+    {
+        globalTypeError = TypeError_InvalidParameter;
+        return false;
+    }
+
+    bitArray.Data.Pointer[index / BITS_PER_SIZE_TYPE] &= ~((size_t)1 << (index & MASK_SIZE_TYPE));
+
+    globalTypeError = TypeError_None;
+    return true;
 }
 
 static inline bool BitArrayIsSet(BitArray bitArray, size_t index)
 {
-    return false;
+    if (index >= bitArray.BitCount || BitArrayIsEmpty(bitArray)) 
+    {
+        globalTypeError = TypeError_InvalidParameter;
+        return false;
+    }
+
+    globalTypeError = TypeError_None;
+
+    auto pointer = bitArray.Data.Pointer;
+    return ((pointer[index / BITS_PER_SIZE_TYPE] >> (index & MASK_SIZE_TYPE)) & 1) == 1;
 }
 
-size_t BitArrayFindFirstNotSet(BitArray bitArray, size_t index);
+size_t BitArrayFindFirstNotSet(BitArray bitArray);
 
 //---------------------------------------------------------------------------------------
 // Standard types

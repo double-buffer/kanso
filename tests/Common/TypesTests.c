@@ -75,58 +75,120 @@ Test(Types, CreateBitArray_WithCorrectBitCount_ReturnsBitArray)
 {
     // Arrange
     const uint32_t spanLength = 2;
-    const uint32_t bitCount = 13;
     
     auto span = StackAllocSize(spanLength);
 
     // Act
-    // TODO: Convert span
-    auto bitArray = CreateBitArray(SpanCast(uint8_t, span), bitCount);
+    auto bitArray = CreateBitArray(span);
 
     // Assert
     TestAssertEquals(TypeError_None, TypeGetLastError());
 
-    TestAssertEquals(bitCount, bitArray.BitCount);
-    TestAssertEquals(spanLength * sizeof(size_t), bitArray.Data.Length);
-    TestAssertEquals((uint8_t*)span.Pointer, bitArray.Data.Pointer);
-}
-
-Test(Types, CreateBitArray_WithIncorrectBitCount_ReturnsEmptyBitArray)
-{
-    // Arrange
-    const uint32_t spanLength = 2;
-    const uint32_t bitCount = 45;
-    
-    auto span = StackAllocUint8(spanLength);
-
-    // Act
-    auto bitArray = CreateBitArray(span, bitCount);
-
-    // Assert
-    TestAssertEquals(TypeError_InvalidParameter, TypeGetLastError());
-    TestAssertIsTrue(BitArrayIsEmpty(bitArray));
+    TestAssertEquals(spanLength, bitArray.Data.Length);
+    TestAssertEquals(span.Pointer, bitArray.Data.Pointer);
 }
 
 Test(Types, BitArraySet_WithCorrectIndex_HasCorrectValue)
 {
     // Arrange
     const uint32_t spanLength = 2;
-    const uint32_t bitCount = 13;
     const uint32_t bitIndexToSet = 5;
     
-    auto span = StackAllocUint8(spanLength);
+    auto span = StackAllocSize(spanLength);
     MemorySet(span, 0);
 
-    auto bitArray = CreateBitArray(span, bitCount);
+    auto bitArray = CreateBitArray(span);
 
     // Act
     auto result = BitArraySet(bitArray, bitIndexToSet);
 
     // Assert
-    auto testResult = BitArrayIsSet(bitArray, bitIndexToSet);
-
     TestAssertIsTrue(result);
     TestAssertEquals(TypeError_None, TypeGetLastError());
 
+    auto testResult = BitArrayIsSet(bitArray, bitIndexToSet);
     TestAssertIsTrue(testResult);
+}
+
+Test(Types, BitArraySet_WithIncorrectIndex_HasErrorSet)
+{
+    // Arrange
+    const uint32_t spanLength = 2;
+    const uint32_t bitIndexToSet = sizeof(size_t) * 8 * 3;
+    
+    auto span = StackAllocSize(spanLength);
+    MemorySet(span, 0);
+
+    auto bitArray = CreateBitArray(span);
+
+    // Act
+    auto result = BitArraySet(bitArray, bitIndexToSet);
+
+    // Assert
+    TestAssertIsFalse(result);
+    TestAssertEquals(TypeError_InvalidParameter, TypeGetLastError());
+}
+
+Test(Types, BitArrayReset_WithCorrectIndex_HasCorrectValue)
+{
+    // Arrange
+    const uint32_t spanLength = 2;
+    const uint32_t bitIndexToSet = 5;
+    
+    auto span = StackAllocSize(spanLength);
+    MemorySet(span, 1);
+
+    auto bitArray = CreateBitArray(span);
+
+    // Act
+    auto result = BitArrayReset(bitArray, bitIndexToSet);
+
+    // Assert
+    TestAssertIsTrue(result);
+    TestAssertEquals(TypeError_None, TypeGetLastError());
+
+    auto testResult = BitArrayIsSet(bitArray, bitIndexToSet);
+    TestAssertIsFalse(testResult);
+}
+
+Test(Types, BitArrayReset_WithIncorrectIndex_HasErrorSet)
+{
+    // Arrange
+    const uint32_t spanLength = 2;
+    const uint32_t bitIndexToSet = sizeof(size_t) * 8 * 3;
+    
+    auto span = StackAllocSize(spanLength);
+    MemorySet(span, 1);
+
+    auto bitArray = CreateBitArray(span);
+
+    // Act
+    auto result = BitArrayReset(bitArray, bitIndexToSet);
+
+    // Assert
+    TestAssertIsFalse(result);
+    TestAssertEquals(TypeError_InvalidParameter, TypeGetLastError());
+}
+
+Test(Types, BitArraySet_BitArrayFindFirstNotSet_HasCorrectValue)
+{
+    // Arrange
+    const uint32_t spanLength = 2;
+    const uint32_t bitMaxIndexToSet = sizeof(size_t) + 3;
+    
+    auto span = StackAllocSize(spanLength);
+    MemorySet(span, 0);
+
+    auto bitArray = CreateBitArray(span);
+
+    for (uint32_t i = 0; i < bitMaxIndexToSet; i++)
+    {
+        BitArraySet(bitArray, i);
+    }
+
+    // Act
+    auto result = BitArrayFindFirstNotSet(bitArray);
+
+    // Assert
+    TestAssertEquals(bitMaxIndexToSet, result);
 }
