@@ -64,7 +64,7 @@ Test(Types, SpanCast_WithSpanUint8ToUint32_HasCorrectValues)
     auto span = StackAllocUint8(itemCount);
 
     // Act
-    auto result = SpanCast(uint32_t, span);
+    auto result = SpanCastUint32(span);
 
     // Assert
     TestAssertEquals(itemCount / sizeof(uint32_t), result.Length);

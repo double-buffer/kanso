@@ -4,42 +4,35 @@
 // Primitive types
 //---------------------------------------------------------------------------------------
 
-typedef unsigned char uint8_t;
-typedef unsigned short uint16_t;
-typedef unsigned int uint32_t;
-typedef unsigned long long uint64_t;
+typedef __UINT8_TYPE__ uint8_t;
+typedef __UINT16_TYPE__ uint16_t;
+typedef __UINT32_TYPE__ uint32_t;
+typedef __UINT64_TYPE__ uint64_t;
 
-typedef char int8_t;
-typedef short int16_t;
-typedef int int32_t;
-typedef long long int64_t;
+typedef __INT8_TYPE__ int8_t;
+typedef __INT16_TYPE__ int16_t;
+typedef __INT32_TYPE__ int32_t;
+typedef __INT64_TYPE__ int64_t;
 
 typedef __UINTPTR_TYPE__ uintptr_t;
 typedef __INTPTR_TYPE__ intptr_t; 
 typedef __SIZE_TYPE__ size_t;
 
-static_assert(sizeof(uint8_t) == 1, "uint8_t must be 1 byte.");
-static_assert(sizeof(uint16_t) == 2, "uint16_t must be 2 bytes.");
-static_assert(sizeof(uint32_t) == 4,  "uint32_t must be 4 bytes.");
-static_assert(sizeof(uint64_t) == 8,  "uint64_t must be 8 bytes.");
-
-static_assert(sizeof(uintptr_t) == sizeof(void *), "uintptr_t is not pointer-sized.");
-
 #define PLATFORM_ARCHITECTURE_BITS (__SIZEOF_POINTER__ * 8)
 #define BITS_PER_BYTE 8u
 #define BITS_PER_SIZE_TYPE (sizeof(size_t) * BITS_PER_BYTE)
 #define MASK_SIZE_TYPE (BITS_PER_SIZE_TYPE - 1)
+#define SIZE_MAX __SIZE_MAX__
 
 #define AlignUp(value, align) __builtin_align_up(value, align)
 #define IsAligned(value, align) __builtin_is_aligned(value, align)
 #define OffsetOf(type, member) __builtin_offsetof(type, member)
 
-// TODO: Cleanup
-#if  __SIZEOF_SIZE_T__ == 8
-#define CoutTrailingZeros(x)  __builtin_ctzll((unsigned long long)(x))
+#if __SIZEOF_SIZE_T__ == 8
+    #define SizePrefixCountZeros(value) __builtin_ctzll((uint64_t)(value))
 #elif __SIZEOF_SIZE_T__ == 4
-#define CoutTrailingZeros(x)  __builtin_ctz((unsigned int)(x))
-#  endif
+    #define SizePrefixCountZeros(value) __builtin_ctz((uint32_t)(value))
+#endif
 
 //---------------------------------------------------------------------------------------
 // Variable parameters
@@ -105,9 +98,7 @@ typedef enum
         return (ReadOnlySpan##name) { .Pointer = span.Pointer, .Length = span.Length }; \
     } \
     \
-    [[clang::overloadable]] \
-    [[clang::always_inline]] \
-    static inline Span##name _SpanCast(size_t sourceStride, void* sourcePointer, size_t sourceLength, const type* unused) \
+    static inline Span##name _SPAN_CAST_##name(size_t sourceStride, void* sourcePointer, size_t sourceLength, const type* unused) \
     { \
         (void)unused; \
         size_t bytes = sourceStride * sourceLength; \
@@ -121,6 +112,12 @@ typedef enum
         CreateSpan##name(array, (size_t)(length)); \
     }))
 
+#define DefineSpanCast(name, type, sourceSpan) \
+    _SPAN_CAST_##name(sizeof(*(sourceSpan).Pointer), \
+               (sourceSpan).Pointer, \
+               (sourceSpan).Length, \
+               (type*)nullptr)
+
 DefineSpan(Char, char)
 #define StackAllocChar(length) DefineSpanStackAlloc(Char, char, (length))
 
@@ -129,18 +126,13 @@ DefineSpan(Uint8, uint8_t)
 
 DefineSpan(Uint32, uint32_t)
 #define StackAllocUint32(length) DefineSpanStackAlloc(Uint32, uint32_t, (length))
+#define SpanCastUint32(sourceSpan) DefineSpanCast(Uint32, uint32_t, (sourceSpan))
 
 DefineSpan(Uint64, uint64_t)
 #define StackAllocUint64(length) DefineSpanStackAlloc(Uint64, uint64_t, (length))
 
 DefineSpan(Size, size_t)
 #define StackAllocSize(length) DefineSpanStackAlloc(Size, size_t, (length))
-
-#define SpanCast(type, sourceSpan) \
-    _SpanCast(sizeof(*(sourceSpan).Pointer), \
-               (sourceSpan).Pointer, \
-               (sourceSpan).Length, \
-               (type*)nullptr)
 
 #define SpanSlice(span, offset, length) \
 ( \

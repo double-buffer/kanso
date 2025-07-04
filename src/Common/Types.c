@@ -8,8 +8,7 @@ size_t BitArrayFindFirstNotSet(BitArray bitArray)
     if (BitArrayIsEmpty(bitArray)) 
     {
         globalTypeError = TypeError_InvalidParameter;
-        // TODO: Return invalid size_t -> SIZE_MAX
-        return 0;
+        return SIZE_MAX;
     }
 
     for (uint32_t i = 0; i < bitArray.Data.Length; i++)
@@ -21,10 +20,9 @@ size_t BitArrayFindFirstNotSet(BitArray bitArray)
             continue;
         }
 
-        // TODO: Rename
-        auto result = CoutTrailingZeros(inverse);
-        return i * BITS_PER_SIZE_TYPE + result;
+        auto result = SizePrefixCountZeros(inverse);
+        return (i * BITS_PER_SIZE_TYPE) + result;
     }
 
-    return 0;
+    return SIZE_MAX;
 }
