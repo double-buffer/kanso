@@ -27,6 +27,7 @@ typedef __SIZE_TYPE__ size_t;
 #define AlignUp(value, align) __builtin_align_up(value, align)
 #define IsAligned(value, align) __builtin_is_aligned(value, align)
 #define OffsetOf(type, member) __builtin_offsetof(type, member)
+#define DivRoundUp(value, divisor) (((value) + (divisor) - 1) / (divisor))
 
 #if __SIZEOF_SIZE_T__ == 8
     #define SizePrefixCountZeros(value) __builtin_ctzll((uint64_t)(value))
@@ -50,7 +51,8 @@ typedef __SIZE_TYPE__ size_t;
 typedef enum 
 {
     TypeError_None,
-    TypeError_InvalidParameter
+    TypeError_InvalidParameter,
+    TypeError_NotFound
 } TypeError;
 
 // TODO: This will need to be thread local
@@ -133,6 +135,7 @@ DefineSpan(Uint64, uint64_t)
 
 DefineSpan(Size, size_t)
 #define StackAllocSize(length) DefineSpanStackAlloc(Size, size_t, (length))
+#define SpanCastSize(sourceSpan) DefineSpanCast(Size, size_t, (sourceSpan))
 
 #define SpanSlice(span, offset, length) \
 ( \
@@ -171,6 +174,17 @@ static inline BitArray CreateBitArray(SpanSize data)
     {
         .Data = data,
         .BitCount = data.Length * BITS_PER_SIZE_TYPE
+    };
+}
+
+static inline BitArray CreateBitArrayWithBitCount(SpanSize data, size_t bitCount)
+{
+    globalTypeError = TypeError_None;
+
+    return (BitArray)
+    {
+        .Data = data,
+        .BitCount = bitCount
     };
 }
 
@@ -217,6 +231,7 @@ static inline bool BitArrayIsSet(BitArray bitArray, size_t index)
 }
 
 size_t BitArrayFindFirstNotSet(BitArray bitArray);
+size_t BitArrayFindRangeNotSet(BitArray bitArray, size_t length);
 
 //---------------------------------------------------------------------------------------
 // Standard types

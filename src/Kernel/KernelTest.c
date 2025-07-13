@@ -101,6 +101,9 @@ void KernelInit()
     KernelConsoleResetStyle();
 
     TestRun(KernelTestHandler, String("Types|Memory"));
+
+    // TODO: Init the MMU
+
 }
 
 void KernelMain()

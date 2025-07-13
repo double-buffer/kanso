@@ -170,7 +170,7 @@ Test(Types, BitArrayReset_WithIncorrectIndex_HasErrorSet)
     TestAssertEquals(TypeError_InvalidParameter, TypeGetLastError());
 }
 
-Test(Types, BitArraySet_BitArrayFindFirstNotSet_HasCorrectValue)
+Test(Types, BitArrayFindFirstNotSet_HasCorrectValue)
 {
     // Arrange
     const uint32_t spanLength = 2;
@@ -191,4 +191,53 @@ Test(Types, BitArraySet_BitArrayFindFirstNotSet_HasCorrectValue)
 
     // Assert
     TestAssertEquals(bitMaxIndexToSet, result);
+}
+
+Test(Types, BitArrayFindRangeNotSet_WithCorrectLength_HasCorrectValue)
+{
+    // Arrange
+    const uint32_t spanLength = 2;
+    const uint32_t firstAvailableIndex = sizeof(size_t) + 3;
+    const uint32_t secondAvailableIndex = sizeof(size_t) + 10;
+    const uint32_t gap = 3;
+    
+    auto span = StackAllocSize(spanLength);
+    MemorySet(span, 0);
+
+    auto bitArray = CreateBitArray(span);
+
+    for (uint32_t i = 0; i < firstAvailableIndex; i++)
+    {
+        BitArraySet(bitArray, i);
+    }
+
+    for (uint32_t i = firstAvailableIndex + gap; i < secondAvailableIndex; i++)
+    {
+        BitArraySet(bitArray, i);
+    }
+
+    // Act
+    auto result = BitArrayFindRangeNotSet(bitArray, gap + 2);
+
+    // Assert
+    TestAssertEquals(secondAvailableIndex, result);
+}
+
+Test(Types, BitArrayFindRangeNotSet_WithIncorrectLength_HasErrorSet)
+{
+    // Arrange
+    const uint32_t spanLength = 2;
+    const uint32_t incorrectLength = (spanLength * sizeof(size_t) * BITS_PER_SIZE_TYPE) + 5;
+
+    auto span = StackAllocSize(spanLength);
+    MemorySet(span, 0);
+
+    auto bitArray = CreateBitArray(span);
+
+    // Act
+    auto result = BitArrayFindRangeNotSet(bitArray, incorrectLength);
+
+    // Assert
+    TestAssertEquals(SIZE_MAX, result);
+    TestAssertEquals(TypeError_InvalidParameter, TypeGetLastError());
 }

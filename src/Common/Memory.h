@@ -82,13 +82,20 @@ typedef struct
     size_t PageCount;
 } MemoryReservation;
 
-#define MEMORY_RESERVATION_EMPTY ((MemoryReservation){ .BaseAddress = nullptr, .PageCount = 0 })
+typedef struct 
+{
+    size_t CommittedPages;
+    size_t ReservedPages;
+} MemoryAllocationInfos;
 
+#define MEMORY_RESERVATION_EMPTY ((MemoryReservation){ .BaseAddress = nullptr, .PageCount = 0 })
 
 static inline bool MemoryReservationIsEmpty(MemoryReservation memoryReservation)
 {
     return memoryReservation.BaseAddress == nullptr;
 }
+
+MemoryAllocationInfos MemoryGetAllocationInfos();
 
 MemoryReservation MemoryReservePages(size_t pageCount);
 bool MemoryRelease(MemoryReservation* memoryReservation);

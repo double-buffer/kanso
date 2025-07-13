@@ -8,15 +8,18 @@ Test(Memory, MemoryReserve_WithValidSize_ReturnsMemoryReservation)
 {
     // Arrange
     const size_t pageCount = 4;
+    auto beforeAllocationInfos = MemoryGetAllocationInfos();
 
     // Act
     auto memoryReservation = MemoryReservePages(pageCount);
 
     // Assert
+    auto afterAllocationInfos = MemoryGetAllocationInfos();
     TestAssertEquals(MemoryError_None, MemoryGetLastError());
 
     TestAssertIsFalse(MemoryReservationIsEmpty(memoryReservation));
     TestAssertEquals(pageCount, memoryReservation.PageCount);
+    TestAssertGreaterThan(afterAllocationInfos.ReservedPages, beforeAllocationInfos.ReservedPages);
 }
 
 Test(Memory, MemoryReserve_WithMultipleReservations_ReturnsDifferentMemoryReservations)
@@ -136,13 +139,18 @@ Test(Memory, MemoryRelease_WithValidMemoryReservation_ReturnsTrue)
     // Arrange
     const size_t pageCount = 4;
     auto memoryReservation = MemoryReservePages(pageCount);
+    auto beforeAllocationInfos = MemoryGetAllocationInfos();
 
     // Act
     auto result = MemoryRelease(&memoryReservation);
 
     // Assert
+    auto afterAllocationInfos = MemoryGetAllocationInfos();
+
     TestAssertEquals(MemoryError_None, MemoryGetLastError());
     TestAssertIsTrue(result);
+    TestAssertIsTrue(MemoryReservationIsEmpty(memoryReservation));
+    TestAssertGreaterThan(beforeAllocationInfos.ReservedPages, afterAllocationInfos.ReservedPages);
 }
 
 Test(Memory, MemoryRelease_WithInvalidMemoryReservation_ReturnsFalse)
