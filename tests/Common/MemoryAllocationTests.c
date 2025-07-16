@@ -3,6 +3,7 @@
 
 // TODO: For user mode only, we will wipe the committed pages to zero. So
 // we need to test that
+// TODO: Check protection level for commit
 
 Test(Memory, MemoryReserve_WithValidSize_ReturnsMemoryReservation)
 {

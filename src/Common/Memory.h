@@ -88,7 +88,7 @@ typedef struct
     size_t ReservedPages;
 } MemoryAllocationInfos;
 
-#define MEMORY_RESERVATION_EMPTY ((MemoryReservation){ .BaseAddress = nullptr, .PageCount = 0 })
+#define MEMORY_RESERVATION_EMPTY ((MemoryReservation) { .BaseAddress = nullptr, .PageCount = 0 })
 
 static inline bool MemoryReservationIsEmpty(MemoryReservation memoryReservation)
 {
@@ -107,3 +107,28 @@ bool MemoryDecommitPages(const MemoryReservation* memoryReservation, size_t page
 // Memory Arena
 //---------------------------------------------------------------------------------------
 
+struct MemoryArenaStorage;
+
+typedef struct
+{
+    struct MemoryArenaStorage* Storage;
+} MemoryArena;
+
+typedef struct 
+{
+    size_t AllocatedBytes;
+    size_t CommittedBytes;
+    size_t MaximumSizeInBytes;
+} MemoryArenaAllocationInfos;
+
+#define MEMORY_ARENA_EMPTY ((MemoryArena) { .Storage = nullptr };
+
+static inline bool MemoryArenaIsEmpty(MemoryArena memoryArena)
+{
+    return memoryArena.Storage == nullptr;
+}
+
+MemoryArena CreateMemoryArena(size_t sizeInBytes);
+void MemoryArenaRelease(MemoryArena memoryArena);
+
+MemoryArenaAllocationInfos MemoryArenaGetAllocationInfos(MemoryArena memoryArena);

@@ -57,6 +57,25 @@ void MemoryCopyDefault(size_t stride, void* destination, size_t destinationLengt
 // MemoryArena
 //---------------------------------------------------------------------------------------
 
+MemoryArena CreateMemoryArena(size_t sizeInBytes)
+{
+    globalMemoryError = MemoryError_None;
+    return (MemoryArena)
+    {
+    };
+}
+
+void MemoryArenaRelease(MemoryArena memoryArena)
+{
+}
+
+MemoryArenaAllocationInfos MemoryArenaGetAllocationInfos(MemoryArena memoryArena)
+{
+    return (MemoryArenaAllocationInfos)
+    {
+    };
+}
+
 // TODO: Move that to the standard library
 
 size_t strlen(const char* string)
