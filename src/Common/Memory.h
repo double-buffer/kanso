@@ -121,7 +121,7 @@ typedef struct
     size_t MaximumSizeInBytes;
 } MemoryArenaAllocationInfos;
 
-#define MEMORY_ARENA_EMPTY ((MemoryArena) { .Storage = nullptr };
+#define MEMORY_ARENA_EMPTY ((MemoryArena) { .Storage = nullptr });
 
 static inline bool MemoryArenaIsEmpty(MemoryArena memoryArena)
 {
@@ -129,6 +129,13 @@ static inline bool MemoryArenaIsEmpty(MemoryArena memoryArena)
 }
 
 MemoryArena CreateMemoryArena(size_t sizeInBytes);
-void MemoryArenaRelease(MemoryArena memoryArena);
+bool MemoryArenaRelease(MemoryArena* memoryArena);
 
 MemoryArenaAllocationInfos MemoryArenaGetAllocationInfos(MemoryArena memoryArena);
+
+SpanUint8 MemoryArenaPush(MemoryArena memoryArena, size_t sizeInBytes);
+SpanUint8 MemoryArenaPushReserved(MemoryArena memoryArena, size_t sizeInBytes);
+//bool MemoryArenaPop(MemoryArena memoryArena, size_t sizeInBytes);
+//bool MemoryArenaClear(MemoryArena memoryArena);
+
+bool MemoryArenaCommit(MemoryArena memoryArena, SpanUint8 range);
