@@ -143,7 +143,11 @@ MemoryArenaAllocationInfos MemoryArenaGetAllocationInfos(MemoryArena memoryArena
 SpanUint8 MemoryArenaPush(MemoryArena memoryArena, size_t sizeInBytes)
 {
     auto span = MemoryArenaPushReserved(memoryArena, sizeInBytes);
-    MemoryArenaCommit(memoryArena, span);
+
+    if (span.Pointer)
+    {
+        MemoryArenaCommit(memoryArena, span);
+    }
 
     return span;
 }
@@ -171,6 +175,11 @@ bool MemoryArenaCommit(MemoryArena memoryArena, SpanUint8 range)
     auto storage = memoryArena.Storage;
     auto systemInformation = SystemGetInformation();
     
+    if (range.Pointer > memoryArena.Storage->CurrentPointer || (range.Pointer + range.Length) > memoryArena.Storage->CurrentPointer)
+    {
+        globalMemoryError = MemoryError_InvalidParameter;
+        return false;
+    }
     // TODO: check calculations
 
     auto pageOffset = (range.Pointer - storage->DataSpan.Pointer) / systemInformation.PageSize;
@@ -187,7 +196,8 @@ bool MemoryArenaCommit(MemoryArena memoryArena, SpanUint8 range)
         }
     }
 
-    return false;
+    globalMemoryError = MemoryError_None;
+    return true;
 }
 
 // TODO: Move that to the standard library

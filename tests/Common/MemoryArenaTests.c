@@ -1,5 +1,6 @@
 #include "Memory.h"
 #include "Test.h"
+#include "Types.h"
 
 Test(Memory, CreateMemoryArena_WithValidSize_ReturnsMemoryArena)
 {
@@ -106,6 +107,46 @@ Test(Memory, MemoryArenaPush_WithInvalidSize_ReturnsEmptySpan)
     TestAssertEquals(beforeAllocationInfos.CommittedBytes, afterAllocationInfos.CommittedBytes);
 }
 
+Test(Memory, MemoryArenaPushStruct_WithValidStruct_ReturnsValidStruct)
+{
+    // Arrange
+    const size_t memoryArenaSize = 1024;
+    auto memoryArena = CreateMemoryArena(memoryArenaSize);
+    auto beforeAllocationInfos = MemoryArenaGetAllocationInfos(memoryArena);
+
+    // Act
+    auto result = MemoryArenaPushStruct(memoryArena, uint32_t);
+
+    // Assert
+    TestAssertEquals(MemoryError_None, MemoryGetLastError());
+    TestAssertNotEquals(nullptr, result); 
+
+    auto afterAllocationInfos = MemoryArenaGetAllocationInfos(memoryArena);
+    TestAssertGreaterThan(afterAllocationInfos.CommittedBytes, beforeAllocationInfos.CommittedBytes);
+    TestAssertEquals(sizeof(uint32_t), afterAllocationInfos.AllocatedBytes);
+}
+
+Test(Memory, MemoryArenaPushArray_WithValidStructAndCount_ReturnsValidArray)
+{
+    // Arrange
+    const size_t memoryArenaSize = 1024;
+    const uint32_t arrayCount = 5;
+    auto memoryArena = CreateMemoryArena(memoryArenaSize);
+    auto beforeAllocationInfos = MemoryArenaGetAllocationInfos(memoryArena);
+
+    // Act
+    auto result = MemoryArenaPushArray(memoryArena, uint32_t, arrayCount);
+
+    // Assert
+    TestAssertEquals(MemoryError_None, MemoryGetLastError());
+    TestAssertNotEquals(nullptr, result.Pointer); 
+    TestAssertEquals(arrayCount, result.Length); 
+
+    auto afterAllocationInfos = MemoryArenaGetAllocationInfos(memoryArena);
+    TestAssertGreaterThan(afterAllocationInfos.CommittedBytes, beforeAllocationInfos.CommittedBytes);
+    TestAssertEquals(sizeof(uint32_t), afterAllocationInfos.AllocatedBytes);
+}
+
 Test(Memory, MemoryArenaPushReserved_WithValidSize_ReturnsValidSpan)
 {
     // Arrange
@@ -148,3 +189,42 @@ Test(Memory, MemoryArenaPushReserved_WithInvalidSize_ReturnsEmptySpan)
     TestAssertEquals(beforeAllocationInfos.CommittedBytes, afterAllocationInfos.CommittedBytes);
 }
 
+Test(Memory, MemoryArenaCommit_WithValidRange_CommitMemory)
+{
+    // Arrange
+    const size_t memoryArenaSize = 1024;
+    const size_t pushSize = 512;
+    auto memoryArena = CreateMemoryArena(memoryArenaSize);
+    auto span = MemoryArenaPushReserved(memoryArena, pushSize);
+    auto beforeAllocationInfos = MemoryArenaGetAllocationInfos(memoryArena);
+
+    // Act
+    auto result = MemoryArenaCommit(memoryArena, SpanSlice(span, 64, 128));
+
+    // Assert
+    TestAssertEquals(MemoryError_None, MemoryGetLastError());
+    TestAssertIsTrue(result); 
+
+    auto afterAllocationInfos = MemoryArenaGetAllocationInfos(memoryArena);
+    TestAssertGreaterThan(afterAllocationInfos.CommittedBytes, beforeAllocationInfos.CommittedBytes);
+}
+
+Test(Memory, MemoryArenaCommit_WithInvalidRange_CommitMemory)
+{
+    // Arrange
+    const size_t memoryArenaSize = 1024;
+    const size_t pushSize = 512;
+    auto memoryArena = CreateMemoryArena(memoryArenaSize);
+    auto span = MemoryArenaPushReserved(memoryArena, pushSize);
+    auto beforeAllocationInfos = MemoryArenaGetAllocationInfos(memoryArena);
+
+    // Act
+    auto result = MemoryArenaCommit(memoryArena, SpanSlice(span, 512, 128));
+
+    // Assert
+    TestAssertEquals(MemoryError_InvalidParameter, MemoryGetLastError());
+    TestAssertIsFalse(result); 
+
+    auto afterAllocationInfos = MemoryArenaGetAllocationInfos(memoryArena);
+    TestAssertEquals(afterAllocationInfos.CommittedBytes, beforeAllocationInfos.CommittedBytes);
+}

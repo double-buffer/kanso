@@ -135,6 +135,29 @@ MemoryArenaAllocationInfos MemoryArenaGetAllocationInfos(MemoryArena memoryArena
 
 SpanUint8 MemoryArenaPush(MemoryArena memoryArena, size_t sizeInBytes);
 SpanUint8 MemoryArenaPushReserved(MemoryArena memoryArena, size_t sizeInBytes);
+
+#define MemoryArenaPushStruct(memoryArena, structType) ((structType*)MemoryArenaPush((memoryArena), sizeof(structType)).Pointer)
+//#define MemoryArenaPushArray(memoryArena, structType, count) CreateSpan##structType(((structType*)MemoryArenaPush((memoryArena), sizeof(structType) * (count)).Pointer), (count))
+
+
+/* ---------- choose the right CreateSpanXxx helper at compile-time ---------- */
+#define _SpanFactory(T)                                                     \
+    _Generic(((T*)0),                                                       \
+        uint8_t  *: CreateSpanUint8,                                        \
+        uint32_t *: CreateSpanUint32,                                       \
+        uint64_t *: CreateSpanUint64,                                       \
+        /*  add a line here the day you need uint128_t, size_t, etc.  */     \
+        default   : CreateSpan##T)
+
+/* --------------------------- public-facing macro --------------------------- */
+#define MemoryArenaPushArray(arena, T, count)                               \
+    ({                                                                      \
+        size_t _n = (count);                                                \
+        void  *_p = MemoryArenaPush((arena), sizeof(T)*_n).Pointer;         \
+        _SpanFactory(T)((T*)_p, _n);                                        \
+    })
+
+
 //bool MemoryArenaPop(MemoryArena memoryArena, size_t sizeInBytes);
 //bool MemoryArenaClear(MemoryArena memoryArena);
 
