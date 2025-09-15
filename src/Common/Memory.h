@@ -139,7 +139,7 @@ SpanUint8 MemoryArenaPushReserved(MemoryArena memoryArena, size_t sizeInBytes);
 #define MemoryArenaPushStruct(type, memoryArena) ((type*)MemoryArenaPush((memoryArena), sizeof(type)).Pointer)
 #define MemoryArenaPushArray(type, memoryArena, count) CreateSpan(type, ((type*)MemoryArenaPush((memoryArena), sizeof(type) * (count)).Pointer), (count))
 
-//bool MemoryArenaPop(MemoryArena memoryArena, size_t sizeInBytes);
-//bool MemoryArenaClear(MemoryArena memoryArena);
+bool MemoryArenaPop(MemoryArena memoryArena, size_t sizeInBytes);
+void MemoryArenaClear(MemoryArena memoryArena);
 
 bool MemoryArenaCommit(MemoryArena memoryArena, SpanUint8 range);

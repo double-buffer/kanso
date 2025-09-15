@@ -170,6 +170,26 @@ SpanUint8 MemoryArenaPushReserved(MemoryArena memoryArena, size_t sizeInBytes)
     return span;
 }
 
+bool MemoryArenaPop(MemoryArena memoryArena, size_t sizeInBytes)
+{
+    if (memoryArena.Storage->CurrentPointer - memoryArena.Storage->DataSpan.Pointer < sizeInBytes)
+    {
+        globalMemoryError = MemoryError_InvalidParameter;
+        return false;
+    }
+
+    memoryArena.Storage->CurrentPointer -= sizeInBytes;
+    globalMemoryError = MemoryError_None;
+
+    return true;
+}
+
+void MemoryArenaClear(MemoryArena memoryArena)
+{
+    memoryArena.Storage->CurrentPointer = memoryArena.Storage->DataSpan.Pointer;
+    globalMemoryError = MemoryError_None;
+}
+
 bool MemoryArenaCommit(MemoryArena memoryArena, SpanUint8 range)
 {
     auto storage = memoryArena.Storage;

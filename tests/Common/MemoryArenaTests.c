@@ -189,6 +189,62 @@ Test(Memory, MemoryArenaPushReserved_WithInvalidSize_ReturnsEmptySpan)
     TestAssertEquals(beforeAllocationInfos.CommittedBytes, afterAllocationInfos.CommittedBytes);
 }
 
+Test(Memory, MemoryArenaPop_WithValidSize_ReturnsTrue)
+{
+    // Arrange
+    const size_t memoryArenaSize = 1024;
+    const size_t pushSize = 512;
+    auto memoryArena = CreateMemoryArena(memoryArenaSize);
+    MemoryArenaPush(memoryArena, pushSize);
+
+    // Act
+    auto result = MemoryArenaPop(memoryArena, pushSize / 2);
+
+    // Assert
+    TestAssertEquals(MemoryError_None, MemoryGetLastError());
+    TestAssertIsTrue(result);
+
+    auto allocationInfos = MemoryArenaGetAllocationInfos(memoryArena);
+    TestAssertEquals(pushSize / 2, allocationInfos.AllocatedBytes);
+}
+
+Test(Memory, MemoryArenaPop_WithInvalidSize_ReturnsFalse)
+{
+    // Arrange
+    const size_t memoryArenaSize = 1024;
+    const size_t pushSize = 512;
+    auto memoryArena = CreateMemoryArena(memoryArenaSize);
+    MemoryArenaPush(memoryArena, pushSize);
+
+    // Act
+    auto result = MemoryArenaPop(memoryArena, pushSize * 2);
+
+    // Assert
+    TestAssertEquals(MemoryError_InvalidParameter, MemoryGetLastError());
+    TestAssertIsFalse(result);
+
+    auto allocationInfos = MemoryArenaGetAllocationInfos(memoryArena);
+    TestAssertEquals(pushSize, allocationInfos.AllocatedBytes);
+}
+
+Test(Memory, MemoryArenaClear_ResetAllocatedMemory)
+{
+    // Arrange
+    const size_t memoryArenaSize = 1024;
+    const size_t pushSize = 512;
+    auto memoryArena = CreateMemoryArena(memoryArenaSize);
+    MemoryArenaPush(memoryArena, pushSize);
+
+    // Act
+    MemoryArenaClear(memoryArena);
+
+    // Assert
+    TestAssertEquals(MemoryError_None, MemoryGetLastError());
+
+    auto allocationInfos = MemoryArenaGetAllocationInfos(memoryArena);
+    TestAssertEquals(0, allocationInfos.AllocatedBytes);
+}
+
 Test(Memory, MemoryArenaCommit_WithValidRange_CommitMemory)
 {
     // Arrange

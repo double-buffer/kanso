@@ -155,7 +155,7 @@ Test(Types, BitArrayReset_WithIncorrectIndex_HasErrorSet)
 {
     // Arrange
     const uint32_t spanLength = 2;
-    const uint32_t bitIndexToSet = sizeof(size_t) * 8 * 3;
+    const uint32_t bitIndexToSet = BITS_PER_SIZE_TYPE * 24;
     
     auto span = StackAlloc(size_t, spanLength);
     MemorySet(span, 1);
@@ -174,7 +174,7 @@ Test(Types, BitArrayFindFirstNotSet_HasCorrectValue)
 {
     // Arrange
     const uint32_t spanLength = 2;
-    const uint32_t bitMaxIndexToSet = sizeof(size_t) + 3;
+    const uint32_t bitMaxIndexToSet = BITS_PER_SIZE_TYPE+ 3;
     
     auto span = StackAlloc(size_t, spanLength);
     MemorySet(span, 0);
@@ -197,8 +197,8 @@ Test(Types, BitArrayFindRangeNotSet_WithCorrectLength_HasCorrectValue)
 {
     // Arrange
     const uint32_t spanLength = 2;
-    const uint32_t firstAvailableIndex = sizeof(size_t) + 3;
-    const uint32_t secondAvailableIndex = sizeof(size_t) + 10;
+    const uint32_t firstAvailableIndex = BITS_PER_SIZE_TYPE + 3;
+    const uint32_t secondAvailableIndex = BITS_PER_SIZE_TYPE + 10;
     const uint32_t gap = 3;
     
     auto span = StackAlloc(size_t, spanLength);
@@ -227,7 +227,7 @@ Test(Types, BitArrayFindRangeNotSet_WithIncorrectLength_HasErrorSet)
 {
     // Arrange
     const uint32_t spanLength = 2;
-    const uint32_t incorrectLength = (spanLength * sizeof(size_t) * BITS_PER_SIZE_TYPE) + 5;
+    const uint32_t incorrectLength = (spanLength * BITS_PER_SIZE_TYPE) + 5;
 
     auto span = StackAlloc(size_t, spanLength);
     MemorySet(span, 0);

@@ -94,18 +94,12 @@ typedef enum
     { \
         return (ReadOnlySpan##name) { .Pointer = pointer, .Length = length }; \
     } \
-    \
-    static inline Span##name _SPAN_CAST_##type(size_t sourceStride, void* sourcePointer, size_t sourceLength, const type* unused) \
-    { \
-        (void)unused; \
-        size_t bytes = sourceStride * sourceLength; \
-        return CreateSpan(type, (type*)sourcePointer, bytes / sizeof(type)); \
-    }
 
 #define CreateSpan(type, pointer, length) _CREATE_SPAN_##type(pointer, length)
 #define CreateReadOnlySpan(type, pointer, length) _CREATE_READONLY_SPAN_##type(pointer, length)
 
 #define ToReadOnlySpan(type, span) _CREATE_READONLY_SPAN_##type((span).Pointer, (span).Length)
+#define SpanCast(type, span) CreateSpan(type, (type*)(span).Pointer, (sizeof(*(span).Pointer) * (span).Length) / sizeof(type))
 
 #define StackAlloc(type, length) \
     (__extension__ ({ \
@@ -113,12 +107,6 @@ typedef enum
         type array[(length)]; \
         CreateSpan(type, array, (size_t)(length)); \
     }))
-
-#define SpanCast(type, sourceSpan) \
-    _SPAN_CAST_##type(sizeof(*(sourceSpan).Pointer), \
-               (sourceSpan).Pointer, \
-               (sourceSpan).Length, \
-               (type*)nullptr)
 
 #define SpanSlice(span, offset, length) \
 ( \
