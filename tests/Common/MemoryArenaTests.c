@@ -115,7 +115,7 @@ Test(Memory, MemoryArenaPushStruct_WithValidStruct_ReturnsValidStruct)
     auto beforeAllocationInfos = MemoryArenaGetAllocationInfos(memoryArena);
 
     // Act
-    auto result = MemoryArenaPushStruct(memoryArena, uint32_t);
+    auto result = MemoryArenaPushStruct(uint32_t, memoryArena);
 
     // Assert
     TestAssertEquals(MemoryError_None, MemoryGetLastError());
@@ -135,7 +135,7 @@ Test(Memory, MemoryArenaPushArray_WithValidStructAndCount_ReturnsValidArray)
     auto beforeAllocationInfos = MemoryArenaGetAllocationInfos(memoryArena);
 
     // Act
-    auto result = MemoryArenaPushArray(memoryArena, uint32_t, arrayCount);
+    auto result = MemoryArenaPushArray(uint32_t, memoryArena, arrayCount);
 
     // Assert
     TestAssertEquals(MemoryError_None, MemoryGetLastError());
@@ -144,7 +144,7 @@ Test(Memory, MemoryArenaPushArray_WithValidStructAndCount_ReturnsValidArray)
 
     auto afterAllocationInfos = MemoryArenaGetAllocationInfos(memoryArena);
     TestAssertGreaterThan(afterAllocationInfos.CommittedBytes, beforeAllocationInfos.CommittedBytes);
-    TestAssertEquals(sizeof(uint32_t), afterAllocationInfos.AllocatedBytes);
+    TestAssertEquals(sizeof(uint32_t) * arrayCount, afterAllocationInfos.AllocatedBytes);
 }
 
 Test(Memory, MemoryArenaPushReserved_WithValidSize_ReturnsValidSpan)

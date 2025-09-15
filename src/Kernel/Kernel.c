@@ -12,7 +12,7 @@ void KernelFailureCore(ReadOnlySpanChar file, uint32_t line, ReadOnlySpanChar me
     va_list vargs;
     va_start(vargs, message);
 
-    auto tmp = StackAllocChar(256);
+    auto tmp = StackAlloc(char, 256);
     StringFormatVargs(&tmp, message, vargs);
 
     KernelConsolePrint(String("%s\n\n"), tmp);

@@ -9,7 +9,7 @@ Test(Memory, MemorySet_WithUint32_HasCorrectValues)
     const uint32_t itemCount = 10;
     const uint32_t initialValue = 28;
 
-    auto destination = StackAllocUint32(itemCount);
+    auto destination = StackAlloc(uint32_t, itemCount);
     
     // Act
     MemorySet(destination, initialValue);
@@ -27,7 +27,7 @@ Test(Memory, MemorySet_WithUint8_HasCorrectValues)
     const uint8_t itemCount = 10;
     const uint8_t initialValue = 28;
 
-    auto destination = StackAllocUint8(itemCount);
+    auto destination = StackAlloc(uint8_t, itemCount);
 
     // Act
     MemorySet(destination, initialValue);
@@ -43,18 +43,18 @@ Test(Memory, MemoryCopy_WithUint32_HasCorrectValues)
 {
     // Arrange
     const uint8_t itemCount = 10;
-    auto source = StackAllocUint32(itemCount);
+    auto source = StackAlloc(uint32_t, itemCount);
 
     for (uint32_t i = 0; i < itemCount; i++)
     {
         SpanAt(source, i) = i;
     }
     
-    auto destination = StackAllocUint32(itemCount);
+    auto destination = StackAlloc(uint32_t, itemCount);
     MemorySet(destination, 0);
     
     // Act
-    MemoryCopy(destination, ToReadOnlySpanUint32(source));
+    MemoryCopy(destination, ToReadOnlySpan(uint32_t, source));
 
     // Assert
     for (uint32_t i = 0; i < itemCount; i++)
@@ -67,18 +67,18 @@ Test(Memory, MemoryCopy_WithUint8_HasCorrectValues)
 {
     // Arrange
     const uint8_t itemCount = 10;
-    auto source = StackAllocUint8(itemCount);
+    auto source = StackAlloc(uint8_t, itemCount);
 
     for (uint32_t i = 0; i < itemCount; i++)
     {
         SpanAt(source, i) = i;
     }
     
-    auto destination = StackAllocUint8(itemCount);
+    auto destination = StackAlloc(uint8_t, itemCount);
     MemorySet(destination, 0);
     
     // Act
-    MemoryCopy(destination, ToReadOnlySpanUint8(source));
+    MemoryCopy(destination, ToReadOnlySpan(uint8_t, source));
 
     // Assert
     for (uint32_t i = 0; i < itemCount; i++)

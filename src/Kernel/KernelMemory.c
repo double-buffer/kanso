@@ -45,7 +45,7 @@ static void KernelInitModeSetupBitArrayAllocator()
     auto bitmapStorageSizeInBytes = DivRoundUp(maxPageCount, 8);
     auto bitmapStoragePageCount = DivRoundUp(bitmapStorageSizeInBytes, globalKernelMemoryState.PageSize);
 
-    memoryState->BitArray = CreateBitArrayWithBitCount(SpanCastSize(SpanSlice(memoryState->InitHeap, 0, bitmapStorageSizeInBytes)), maxPageCount);
+    memoryState->BitArray = CreateBitArrayWithBitCount(SpanCast(size_t, SpanSlice(memoryState->InitHeap, 0, bitmapStorageSizeInBytes)), maxPageCount);
 
     for (uint32_t i = 0; i < maxPageCount; i++)
     {

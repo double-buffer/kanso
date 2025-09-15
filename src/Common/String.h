@@ -4,11 +4,10 @@
 #include "Memory.h"
 
 DefineSpan(String, ReadOnlySpanChar)
-#define StackAllocString(length) DefineSpanStackAlloc(String, ReadOnlySpanChar, (length))
 
 static inline ReadOnlySpanChar String(const char* string)
 {
-    return CreateReadOnlySpanChar(string, __builtin_strlen(string));
+    return CreateReadOnlySpan(char, string, __builtin_strlen(string));
 }
 
 bool StringEquals(ReadOnlySpanChar string1, ReadOnlySpanChar string2);

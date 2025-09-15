@@ -49,7 +49,7 @@ Test(String, StringSplit_WithParameters_HasCorrectValues)
 {
     // Arrange
     const auto testString = String("Test1|Test2|Test3");
-    auto destination = StackAllocString(64);
+    auto destination = StackAlloc(ReadOnlySpanChar, 64);
 
     // Act
     StringSplit(&destination, testString, '|');
@@ -69,12 +69,12 @@ Test(String, StringFormat_WithParameters_HasCorrectValues)
     const auto stringParameter = String("TestParameter");
     
     const auto finalString = String("Test: 28, TestParameter"); 
-    auto destination = StackAllocChar(64);
+    auto destination = StackAlloc(char, 64);
 
     // Act
     StringFormat(&destination, testString, intParameter, stringParameter);
 
     // Assert
-    TestAssertStringEquals(finalString, ToReadOnlySpanChar(destination));
+    TestAssertStringEquals(finalString, ToReadOnlySpan(char, destination));
 }
 

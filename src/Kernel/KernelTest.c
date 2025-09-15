@@ -81,7 +81,7 @@ void KernelTestHandler(TestRunState state, ReadOnlySpanChar message, ...)
     va_list vargs;
     va_start(vargs, message);
 
-    auto tmp = StackAllocChar(256);
+    auto tmp = StackAlloc(char, 256);
     StringFormatVargs(&tmp, message, vargs);
 
     KernelConsolePrint(String(" %s\n"), tmp);

@@ -98,9 +98,9 @@ MemoryArena CreateMemoryArena(size_t sizeInBytes)
     auto storage = (MemoryArenaStorage*)memoryReservation.BaseAddress;
     *storage = (MemoryArenaStorage){};
     storage->MemoryReservation = memoryReservation;
-    storage->DataSpan = CreateSpanUint8((uint8_t*)memoryReservation.BaseAddress + headerSizeInBytes, sizeInBytes);
+    storage->DataSpan = CreateSpan(uint8_t, (uint8_t*)memoryReservation.BaseAddress + headerSizeInBytes, sizeInBytes);
     
-    auto committedStatusBitArrayData = SpanCastSize(CreateSpanUint8((uint8_t*)memoryReservation.BaseAddress + sizeof(MemoryArenaStorage), committedStatusBitArraySizeInBytes));
+    auto committedStatusBitArrayData = SpanCast(size_t, CreateSpan(uint8_t, (uint8_t*)memoryReservation.BaseAddress + sizeof(MemoryArenaStorage), committedStatusBitArraySizeInBytes));
     storage->PageCommittedStatus = CreateBitArrayWithBitCount(committedStatusBitArrayData, dataPageCount);
     storage->CurrentPointer = storage->DataSpan.Pointer;
 
@@ -159,10 +159,10 @@ SpanUint8 MemoryArenaPushReserved(MemoryArena memoryArena, size_t sizeInBytes)
     if (allocationInfos.AllocatedBytes + sizeInBytes > allocationInfos.MaximumSizeInBytes)
     {
         globalMemoryError = MemoryError_OutOfMemory;
-        return CreateSpanUint8(nullptr, 0);
+        return CreateSpan(uint8_t, nullptr, 0);
     }
 
-    auto span = CreateSpanUint8(memoryArena.Storage->CurrentPointer, sizeInBytes);
+    auto span = CreateSpan(uint8_t, memoryArena.Storage->CurrentPointer, sizeInBytes);
 
     memoryArena.Storage->CurrentPointer += sizeInBytes;
     globalMemoryError = MemoryError_None;

@@ -34,7 +34,7 @@ void TestRun(TestLogHandler handler, ReadOnlySpanChar categoryFilters)
 
         if (categoryFilters.Length > 0)
         {
-            auto splittedFilters = StackAllocString(64);
+            auto splittedFilters = StackAlloc(ReadOnlySpanChar, 64);
             StringSplit(&splittedFilters, categoryFilters, '|');
 
             auto testCanRun = false;
@@ -77,7 +77,7 @@ void TestRun(TestLogHandler handler, ReadOnlySpanChar categoryFilters)
 
         if (test->HasError)
         {
-            handler(TestRunState_Failed, ToReadOnlySpanChar(globalTestLastErrorMessage));
+            handler(TestRunState_Failed, ToReadOnlySpan(char, globalTestLastErrorMessage));
             failedCounter++;
         }
         else

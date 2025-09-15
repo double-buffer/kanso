@@ -5,7 +5,7 @@
 
 void KernelConsolePrint(ReadOnlySpanChar message, ...)
 {
-    auto output = StackAllocChar(2048);
+    auto output = StackAlloc(char, 2048);
 
     va_list vargs;
     va_start(vargs, message);
@@ -14,7 +14,7 @@ void KernelConsolePrint(ReadOnlySpanChar message, ...)
 
     va_end(vargs);
     
-    BiosDebugConsoleWrite(ToReadOnlySpanChar(output));
+    BiosDebugConsoleWrite(ToReadOnlySpan(char, output));
 }
 
 void KernelConsoleSetForegroundColor(Color color)
@@ -85,7 +85,7 @@ void FormatBoxedMessage(SpanChar destination, ReadOnlySpanChar message)
 
 void KernelConsolePrintBoxMessage(ReadOnlySpanChar message)
 {
-    auto boxedMessage = StackAllocChar(512);
+    auto boxedMessage = StackAlloc(char, 512);
     FormatBoxedMessage(boxedMessage, message);
     KernelConsolePrint(String("\n%s\n"), boxedMessage);
 }

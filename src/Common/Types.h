@@ -85,57 +85,40 @@ typedef enum
     typedef struct Span##name { type* Pointer; size_t Length; } Span##name; \
     typedef struct ReadOnlySpan##name { const type* Pointer; size_t Length; } ReadOnlySpan##name; \
     \
-    static inline Span##name CreateSpan##name(type* pointer, size_t length) \
+    static inline Span##name _CREATE_SPAN_##type(type* pointer, size_t length) \
     { \
         return (Span##name) { .Pointer = pointer, .Length = length }; \
     } \
     \
-    static inline ReadOnlySpan##name CreateReadOnlySpan##name(const type* pointer, size_t length) \
+    static inline ReadOnlySpan##name _CREATE_READONLY_SPAN_##type(const type* pointer, size_t length) \
     { \
         return (ReadOnlySpan##name) { .Pointer = pointer, .Length = length }; \
     } \
     \
-    static inline ReadOnlySpan##name ToReadOnlySpan##name(Span##name span) \
-    { \
-        return (ReadOnlySpan##name) { .Pointer = span.Pointer, .Length = span.Length }; \
-    } \
-    \
-    static inline Span##name _SPAN_CAST_##name(size_t sourceStride, void* sourcePointer, size_t sourceLength, const type* unused) \
+    static inline Span##name _SPAN_CAST_##type(size_t sourceStride, void* sourcePointer, size_t sourceLength, const type* unused) \
     { \
         (void)unused; \
         size_t bytes = sourceStride * sourceLength; \
-        return CreateSpan##name((type *)sourcePointer, bytes / sizeof(type)); \
+        return CreateSpan(type, (type*)sourcePointer, bytes / sizeof(type)); \
     }
 
-#define DefineSpanStackAlloc(name, type, length) \
+#define CreateSpan(type, pointer, length) _CREATE_SPAN_##type(pointer, length)
+#define CreateReadOnlySpan(type, pointer, length) _CREATE_READONLY_SPAN_##type(pointer, length)
+
+#define ToReadOnlySpan(type, span) _CREATE_READONLY_SPAN_##type((span).Pointer, (span).Length)
+
+#define StackAlloc(type, length) \
     (__extension__ ({ \
         static_assert((length) >= 0, "StackAlloc: length must be an integer-constant expression"); \
         type array[(length)]; \
-        CreateSpan##name(array, (size_t)(length)); \
+        CreateSpan(type, array, (size_t)(length)); \
     }))
 
-#define DefineSpanCast(name, type, sourceSpan) \
-    _SPAN_CAST_##name(sizeof(*(sourceSpan).Pointer), \
+#define SpanCast(type, sourceSpan) \
+    _SPAN_CAST_##type(sizeof(*(sourceSpan).Pointer), \
                (sourceSpan).Pointer, \
                (sourceSpan).Length, \
                (type*)nullptr)
-
-DefineSpan(Char, char)
-#define StackAllocChar(length) DefineSpanStackAlloc(Char, char, (length))
-
-DefineSpan(Uint8, uint8_t)
-#define StackAllocUint8(length) DefineSpanStackAlloc(Uint8, uint8_t, (length))
-
-DefineSpan(Uint32, uint32_t)
-#define StackAllocUint32(length) DefineSpanStackAlloc(Uint32, uint32_t, (length))
-#define SpanCastUint32(sourceSpan) DefineSpanCast(Uint32, uint32_t, (sourceSpan))
-
-DefineSpan(Uint64, uint64_t)
-#define StackAllocUint64(length) DefineSpanStackAlloc(Uint64, uint64_t, (length))
-
-DefineSpan(Size, size_t)
-#define StackAllocSize(length) DefineSpanStackAlloc(Size, size_t, (length))
-#define SpanCastSize(sourceSpan) DefineSpanCast(Size, size_t, (sourceSpan))
 
 #define SpanSlice(span, offset, length) \
 ( \
@@ -148,6 +131,12 @@ DefineSpan(Size, size_t)
 
 #define SpanSliceFrom(span, offset) SpanSlice((span), (offset), (span).Length - (offset))
 #define SpanAt(span, index) (span).Pointer[(index)]
+
+DefineSpan(Char, char)
+DefineSpan(Uint8, uint8_t)
+DefineSpan(Uint32, uint32_t)
+DefineSpan(Uint64, uint64_t)
+DefineSpan(Size, size_t)
 
 //---------------------------------------------------------------------------------------
 // BitArray

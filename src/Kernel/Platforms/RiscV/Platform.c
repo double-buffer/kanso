@@ -29,7 +29,7 @@ PlatformInformation PlatformGetInformation()
                 .PageSize = RISCV_MEMORY_PAGESIZE
             },
             .BootCpuId = globalBootHartId,
-            .InitHeap = CreateSpanUint8(__INIT_HEAP_START, __INIT_HEAP_END - __INIT_HEAP_START)
+            .InitHeap = CreateSpan(uint8_t, __INIT_HEAP_START, __INIT_HEAP_END - __INIT_HEAP_START)
         };
     }
 
@@ -146,7 +146,7 @@ bool DeviceTreeReadNode(BinaryReader* reader, size_t stringDataOffset)
 
     if (testNode == 0x01)
     {
-        auto name = StackAllocChar(1024);
+        auto name = StackAlloc(char, 1024);
         BinaryReadString(reader, &name);
         BinarySetOffset(reader, AlignUp(reader->CurrentOffset, 4));
 
@@ -161,13 +161,13 @@ bool DeviceTreeReadNode(BinaryReader* reader, size_t stringDataOffset)
         auto length = BinaryReadUint32(reader);
         auto nameOffset = BinaryReadUint32(reader);
 
-        auto value = StackAllocUint8(1024);
+        auto value = StackAlloc(uint8_t, 1024);
         BinaryReadBytes(reader, length, &value);
 
         auto offset = reader->CurrentOffset;
         BinarySetOffset(reader, stringDataOffset + nameOffset);
 
-        auto name = StackAllocChar(1024);
+        auto name = StackAlloc(char, 1024);
         BinaryReadString(reader, &name);
 
         BinarySetOffset(reader, AlignUp(offset, 4));
@@ -183,7 +183,7 @@ bool DeviceTreeReadNode(BinaryReader* reader, size_t stringDataOffset)
 
 PlatformDevices PlatformGetDevices()
 {
-    auto dtbHeaderData = CreateReadOnlySpanUint8((uint8_t*)globalDeviceTreeData, sizeof(uint32_t) * 2);
+    auto dtbHeaderData = CreateReadOnlySpan(uint8_t, (uint8_t*)globalDeviceTreeData, sizeof(uint32_t) * 2);
 
     auto dtbMagic = ConvertBytesToUint32(dtbHeaderData, ByteOrder_BigEndian);
     auto sizeInBytes = ConvertBytesToUint32(SpanSliceFrom(dtbHeaderData, sizeof(uint32_t)), ByteOrder_BigEndian);
@@ -194,7 +194,7 @@ PlatformDevices PlatformGetDevices()
 
     // TODO: Parse reserved memory area?
     
-    auto dataSpan = CreateReadOnlySpanUint8((const uint8_t*)globalDeviceTreeData, sizeInBytes);
+    auto dataSpan = CreateReadOnlySpan(uint8_t, (const uint8_t*)globalDeviceTreeData, sizeInBytes);
     auto reader = CreateBinaryReader(dataSpan, ByteOrder_BigEndian);
     BinarySetOffset(&reader, sizeof(uint32_t) * 2);
 
