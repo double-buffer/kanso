@@ -22,48 +22,6 @@ static inline MemoryError MemoryGetLastError()
 }
 
 //---------------------------------------------------------------------------------------
-// General
-//---------------------------------------------------------------------------------------
-
-void MemorySetByte(size_t stride, void* destination, size_t destinationLength, const void* value);
-void MemorySetDefault(size_t stride, void* destination, size_t destinationLength, const void* value);
-
-#define MemorySet(destination, value) \
-    _Generic((destination).Pointer, \
-        char*: MemorySetByte, \
-        uint8_t*: MemorySetByte, \
-        default: MemorySetDefault \
-    )(sizeof(*(destination).Pointer), (destination).Pointer, (destination).Length, &(typeof(*(destination).Pointer)){ (value) })
-
-
-// TODO: Add Errors
-
-void MemoryCopyByte(size_t stride, void* destination, size_t destinationLength, const void* source, size_t sourceLength);
-void MemoryCopyDefault(size_t stride, void* destination, size_t destinationLength, const void* source, size_t sourceLength);
-
-#define _MemoryCopyDispatch(destination, source) \
-    _Generic((destination).Pointer, \
-        char*: MemoryCopyByte, \
-        uint8_t*: MemoryCopyByte, \
-        default: MemoryCopyDefault \
-    )(sizeof(*(destination).Pointer), (destination).Pointer, (destination).Length, (source).Pointer, (source).Length)
-
-
-#define _IS_READONLY_SPAN(span) \
-        __builtin_types_compatible_p( \
-                typeof((span).Pointer), \
-                const typeof(*(span).Pointer) *)
-
-#define _ASSERT_READONLY_SPAN(source) \
-        static_assert(_IS_READONLY_SPAN(source), "MemoryCopy: source span must be read-only")
-
-#define MemoryCopy(destination, source) \
-    do { \
-        _ASSERT_READONLY_SPAN(source); \
-        _MemoryCopyDispatch((destination), (source)); \
-    } while (false)
-
-//---------------------------------------------------------------------------------------
 // Memory Allocation
 //---------------------------------------------------------------------------------------
 
@@ -112,6 +70,7 @@ struct MemoryArenaStorage;
 typedef struct
 {
     struct MemoryArenaStorage* Storage;
+    uint8_t* StackStartPointer;
 } MemoryArena;
 
 typedef struct 
@@ -143,3 +102,61 @@ bool MemoryArenaPop(MemoryArena memoryArena, size_t sizeInBytes);
 void MemoryArenaClear(MemoryArena memoryArena);
 
 bool MemoryArenaCommit(MemoryArena memoryArena, SpanUint8 range);
+
+
+MemoryArena CreateStackMemoryArena();
+void ReleaseStackMemoryArena(void* pointer);
+
+#define GetStackMemoryArena() \
+    (__extension__ ({ \
+        [[gnu::cleanup(ReleaseStackMemoryArena)]] auto stackMemoryArena = CreateStackMemoryArena(); \
+        stackMemoryArena; \
+    }))
+
+//---------------------------------------------------------------------------------------
+// General
+//---------------------------------------------------------------------------------------
+
+void MemorySetByte(size_t stride, void* destination, size_t destinationLength, const void* value);
+void MemorySetDefault(size_t stride, void* destination, size_t destinationLength, const void* value);
+
+#define MemorySet(destination, value) \
+    _Generic((destination).Pointer, \
+        char*: MemorySetByte, \
+        uint8_t*: MemorySetByte, \
+        default: MemorySetDefault \
+    )(sizeof(*(destination).Pointer), (destination).Pointer, (destination).Length, &(typeof(*(destination).Pointer)){ (value) })
+
+
+// TODO: Add Errors
+
+void MemoryCopyByte(size_t stride, void* destination, size_t destinationLength, const void* source, size_t sourceLength);
+void MemoryCopyDefault(size_t stride, void* destination, size_t destinationLength, const void* source, size_t sourceLength);
+
+#define MemoryCopy(destination, source) \
+    _Generic((destination).Pointer, \
+        char*: MemoryCopyByte, \
+        uint8_t*: MemoryCopyByte, \
+        default: MemoryCopyDefault \
+    )(sizeof(*(destination).Pointer), (destination).Pointer, (destination).Length, (source).Pointer, (source).Length)
+
+void* MemoryConcatChar(MemoryArena memoryArena, size_t stride, const void* source1, size_t source1Length, const void* source2, size_t source2Length);
+void* MemoryConcatByte(MemoryArena memoryArena, size_t stride, const void* source1, size_t source1Length, const void* source2, size_t source2Length);
+void* MemoryConcatDefault(MemoryArena memoryArena, size_t stride, const void* source1, size_t source1Length, const void* source2, size_t source2Length);
+
+// TODO: It works but the only drawback now is that if source1 is a ReadOnlySpan, it will create a ReadOnlySpan as a result
+#define MemoryConcat(memoryArena, source1, source2) \
+    (__extension__ ({ \
+        auto result = _Generic((source1).Pointer, \
+            char*: MemoryConcatChar, \
+            const char*: MemoryConcatChar, \
+            uint8_t*: MemoryConcatByte, \
+            const uint8_t*: MemoryConcatByte, \
+            default: MemoryConcatDefault \
+        )(memoryArena, sizeof(*(source1).Pointer), (source1).Pointer, (source1).Length, (source2).Pointer, (source2).Length); \
+        (typeof(source1)) \
+        { \
+            .Pointer = result, \
+            .Length  = (source1).Length + (source2.Length) \
+        };\
+    }))

@@ -284,3 +284,30 @@ Test(Memory, MemoryArenaCommit_WithInvalidRange_CommitMemory)
     auto afterAllocationInfos = MemoryArenaGetAllocationInfos(memoryArena);
     TestAssertEquals(afterAllocationInfos.CommittedBytes, beforeAllocationInfos.CommittedBytes);
 }
+
+Test(Memory, GetStackMemoryArena_WithDifferentScopes_UsesSeparateMemoryArena)
+{
+    // Arrange
+    auto stackMemoryArena1 = GetStackMemoryArena();
+    auto string1 = MemoryConcat(stackMemoryArena1, String("Test1"), String("Stack1"));
+
+    MemoryArenaAllocationInfos beforeAllocationInfos;
+    ReadOnlySpanChar string2;
+    ReadOnlySpanChar string5;
+
+    // Act
+    {
+        auto stackMemoryArena2 = GetStackMemoryArena();
+        string2 = MemoryConcat(stackMemoryArena1, String("Test2"), String("Stack1"));
+        MemoryConcat(stackMemoryArena2, String("Test1"), String("Stack2"));
+    
+        beforeAllocationInfos = MemoryArenaGetAllocationInfos(stackMemoryArena1);
+    }
+    
+    auto afterAllocationInfos = MemoryArenaGetAllocationInfos(stackMemoryArena1);
+
+    // Assert
+    TestAssertStringEquals(String("Test1Stack1"), string1);
+    TestAssertStringEquals(String("Test2Stack1"), string2);
+    TestAssertGreaterThan(beforeAllocationInfos.AllocatedBytes, afterAllocationInfos.AllocatedBytes);
+}

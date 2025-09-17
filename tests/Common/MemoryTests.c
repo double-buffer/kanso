@@ -54,7 +54,7 @@ Test(Memory, MemoryCopy_WithUint32_HasCorrectValues)
     MemorySet(destination, 0);
     
     // Act
-    MemoryCopy(destination, ToReadOnlySpan(uint32_t, source));
+    MemoryCopy(destination, source);
 
     // Assert
     for (uint32_t i = 0; i < itemCount; i++)
@@ -78,7 +78,7 @@ Test(Memory, MemoryCopy_WithUint8_HasCorrectValues)
     MemorySet(destination, 0);
     
     // Act
-    MemoryCopy(destination, ToReadOnlySpan(uint8_t, source));
+    MemoryCopy(destination, source);
 
     // Assert
     for (uint32_t i = 0; i < itemCount; i++)
@@ -87,3 +87,70 @@ Test(Memory, MemoryCopy_WithUint8_HasCorrectValues)
     }
 }
 
+Test(Memory, MemoryConcat_WithUint8_HasCorrectValues)
+{
+    // Arrange
+    const size_t memoryArenaSize = 1024;
+    const uint8_t itemCount = 10;
+    const uint8_t source1Value = 5;
+    const uint8_t source2Value = 28;
+
+    auto memoryArena = CreateMemoryArena(memoryArenaSize);
+
+    auto source1 = StackAlloc(uint8_t, itemCount);
+    MemorySet(source1, source1Value);
+
+    auto source2 = StackAlloc(uint8_t, itemCount);
+    MemorySet(source2, source2Value);
+
+    // Act
+    auto result = MemoryConcat(memoryArena, ToReadOnlySpan(uint8_t, source1), source2);
+
+    // Assert
+    TestAssertEquals(MemoryError_None, MemoryGetLastError());
+    TestAssertNotEquals(nullptr, result.Pointer); 
+    TestAssertEquals(itemCount * 2, result.Length); 
+
+    for (uint32_t i = 0; i < itemCount; i++)
+    {
+        TestAssertEquals(source1Value, SpanAt(result, i));
+        TestAssertEquals(source2Value, SpanAt(result, itemCount + i));
+    }
+}
+
+Test(Memory, MemoryConcat_WithChar_HasCorrectValues)
+{
+    // Arrange
+    const size_t memoryArenaSize = 1024;
+    const uint8_t itemCount = 10;
+    const uint8_t defaultValue = 255;
+    const uint8_t source1Value = 5;
+    const uint8_t source2Value = 28;
+
+    auto memoryArena = CreateMemoryArena(memoryArenaSize);
+    auto data = MemoryArenaPush(memoryArena, memoryArenaSize);
+    MemorySet(data, defaultValue);
+    MemoryArenaClear(memoryArena);
+
+    auto source1 = StackAlloc(char, itemCount);
+    MemorySet(source1, source1Value);
+
+    auto source2 = StackAlloc(char, itemCount);
+    MemorySet(source2, source2Value);
+
+    // Act
+    auto result = MemoryConcat(memoryArena, source1, source2);
+
+    // Assert
+    TestAssertEquals(MemoryError_None, MemoryGetLastError());
+    TestAssertNotEquals(nullptr, result.Pointer); 
+    TestAssertEquals(itemCount * 2, result.Length); 
+
+    for (uint32_t i = 0; i < itemCount; i++)
+    {
+        TestAssertEquals(source1Value, SpanAt(result, i));
+        TestAssertEquals(source2Value, SpanAt(result, itemCount + i));
+    }
+
+    TestAssertEquals(0, SpanAt(result, result.Length));
+}

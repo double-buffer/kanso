@@ -85,6 +85,7 @@ void FormatBoxedMessage(SpanChar destination, ReadOnlySpanChar message)
 
 void KernelConsolePrintBoxMessage(ReadOnlySpanChar message)
 {
+    // TODO: Use the stack memory arena here 
     auto boxedMessage = StackAlloc(char, 512);
     FormatBoxedMessage(boxedMessage, message);
     KernelConsolePrint(String("\n%s\n"), boxedMessage);

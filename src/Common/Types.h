@@ -98,7 +98,9 @@ typedef enum
 #define CreateSpan(type, pointer, length) _CREATE_SPAN_##type(pointer, length)
 #define CreateReadOnlySpan(type, pointer, length) _CREATE_READONLY_SPAN_##type(pointer, length)
 
+// TODO: It would be nice if we could ommit the type for this function because we know it already
 #define ToReadOnlySpan(type, span) _CREATE_READONLY_SPAN_##type((span).Pointer, (span).Length)
+
 #define SpanCast(type, span) CreateSpan(type, (type*)(span).Pointer, (sizeof(*(span).Pointer) * (span).Length) / sizeof(type))
 
 #define StackAlloc(type, length) \

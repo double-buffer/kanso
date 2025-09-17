@@ -8,56 +8,6 @@
 MemoryError globalMemoryError = MemoryError_None;
 
 //---------------------------------------------------------------------------------------
-// Span
-//---------------------------------------------------------------------------------------
-
-void MemorySetByte(size_t stride, void* destination, size_t destinationLength, const void* value)
-{
-    (void)stride;
-    uint8_t byteValue = *(uint8_t*)value;
-    __builtin_memset(destination, byteValue, destinationLength);   
-}
-
-void MemorySetDefault(size_t stride, void* destination, size_t destinationLength, const void* value)
-{
-    uint8_t* pointer = destination;
-
-    for (size_t i = 0; i < destinationLength; i++)
-    {
-        for (size_t j = 0; j < stride; j++)
-        {
-            pointer[(i * stride) + j] = ((uint8_t*)value)[j];
-        }
-    }
-}
-
-void MemoryCopyByte(size_t stride, void* destination, size_t destinationLength, const void* source, size_t sourceLength)
-{
-    (void)stride;
-
-    // TODO: Check length
-    (void)destinationLength;
-
-    __builtin_memcpy(destination, source, sourceLength);
-}
-
-void MemoryCopyDefault(size_t stride, void* destination, size_t destinationLength, const void* source, size_t sourceLength)
-{
-    uint8_t* pointer = destination;
-
-    // TODO: Check length
-    (void)destinationLength;
-
-    for (size_t i = 0; i < sourceLength; i++)
-    {
-        for (size_t j = 0; j < stride; j++)
-        {
-            pointer[(i * stride) + j] = ((uint8_t*)source)[(i * stride) + j];
-        }
-    }
-}
-
-//---------------------------------------------------------------------------------------
 // MemoryArena
 //---------------------------------------------------------------------------------------
 
@@ -70,12 +20,15 @@ typedef struct MemoryArenaStorage
     size_t CommittedBytes;
 } MemoryArenaStorage;
 
-MemoryArena CreateMemoryArena(size_t sizeInBytes)
+// TODO: This will need to be thread local
+MemoryArenaStorage* globalStackMemoryArenaStorage;
+
+MemoryArenaStorage* CreateMemoryArenaStorage(size_t sizeInBytes)
 {
     if (sizeInBytes == 0)
     {
         globalMemoryError = MemoryError_InvalidParameter;
-        return MEMORY_ARENA_EMPTY;
+        return nullptr;
     }
 
     auto systemInformation = SystemGetInformation();
@@ -90,7 +43,7 @@ MemoryArena CreateMemoryArena(size_t sizeInBytes)
 
     if (MemoryReservationIsEmpty(memoryReservation))
     {
-        return MEMORY_ARENA_EMPTY;
+        return nullptr;
     }
 
     MemoryCommitPages(&memoryReservation, 0, headerPageCount, MemoryAccess_ReadWrite);
@@ -105,6 +58,18 @@ MemoryArena CreateMemoryArena(size_t sizeInBytes)
     storage->CurrentPointer = storage->DataSpan.Pointer;
 
     globalMemoryError = MemoryError_None;
+
+    return storage;
+}
+
+MemoryArena CreateMemoryArena(size_t sizeInBytes)
+{
+    auto storage = CreateMemoryArenaStorage(sizeInBytes);
+
+    if (!storage)
+    {
+        return MEMORY_ARENA_EMPTY;
+    }
 
     return (MemoryArena)
     {
@@ -172,7 +137,7 @@ SpanUint8 MemoryArenaPushReserved(MemoryArena memoryArena, size_t sizeInBytes)
 
 bool MemoryArenaPop(MemoryArena memoryArena, size_t sizeInBytes)
 {
-    if (memoryArena.Storage->CurrentPointer - memoryArena.Storage->DataSpan.Pointer < sizeInBytes)
+    if ((size_t)(memoryArena.Storage->CurrentPointer - memoryArena.Storage->DataSpan.Pointer) < sizeInBytes)
     {
         globalMemoryError = MemoryError_InvalidParameter;
         return false;
@@ -219,6 +184,110 @@ bool MemoryArenaCommit(MemoryArena memoryArena, SpanUint8 range)
     globalMemoryError = MemoryError_None;
     return true;
 }
+
+MemoryArena CreateStackMemoryArena()
+{
+    if (!globalStackMemoryArenaStorage)
+    {
+        globalStackMemoryArenaStorage = CreateMemoryArenaStorage(1024);
+    }
+
+    return (MemoryArena)
+    {
+        .Storage = globalStackMemoryArenaStorage,
+        .StackStartPointer = globalStackMemoryArenaStorage->CurrentPointer
+    };
+}
+
+void ReleaseStackMemoryArena(void* pointer)
+{
+    auto stackMemoryArena = (MemoryArena*)pointer;
+    //MemoryArenaPop(*stackMemoryArena, (stackMemoryArena->Storage->CurrentPointer - stackMemoryArena->StackStartPointer));
+    MemoryArenaPop(*stackMemoryArena, 10);
+}
+
+//---------------------------------------------------------------------------------------
+// General
+//---------------------------------------------------------------------------------------
+
+void MemorySetByte(size_t stride, void* destination, size_t destinationLength, const void* value)
+{
+    (void)stride;
+    uint8_t byteValue = *(uint8_t*)value;
+    __builtin_memset(destination, byteValue, destinationLength);   
+}
+
+void MemorySetDefault(size_t stride, void* destination, size_t destinationLength, const void* value)
+{
+    uint8_t* pointer = destination;
+
+    for (size_t i = 0; i < destinationLength; i++)
+    {
+        for (size_t j = 0; j < stride; j++)
+        {
+            pointer[(i * stride) + j] = ((uint8_t*)value)[j];
+        }
+    }
+}
+
+void MemoryCopyByte(size_t stride, void* destination, size_t destinationLength, const void* source, size_t sourceLength)
+{
+    (void)stride;
+
+    // TODO: Check length
+    (void)destinationLength;
+
+    __builtin_memcpy(destination, source, sourceLength);
+}
+
+void MemoryCopyDefault(size_t stride, void* destination, size_t destinationLength, const void* source, size_t sourceLength)
+{
+    uint8_t* pointer = destination;
+
+    // TODO: Check length
+    (void)destinationLength;
+
+    for (size_t i = 0; i < sourceLength; i++)
+    {
+        for (size_t j = 0; j < stride; j++)
+        {
+            pointer[(i * stride) + j] = ((uint8_t*)source)[(i * stride) + j];
+        }
+    }
+}
+
+void* MemoryConcatChar(MemoryArena memoryArena, size_t stride, const void* source1, size_t source1Length, const void* source2, size_t source2Length)
+{
+    auto destination = MemoryArenaPush(memoryArena, source1Length + source2Length + 1);
+
+    MemoryCopyByte(stride, destination.Pointer, source1Length, source1, source1Length);
+    MemoryCopyByte(stride, destination.Pointer + (source1Length * stride), source2Length, source2, source2Length);
+
+    SpanAt(destination, source1Length + source2Length) = 0;
+
+    return destination.Pointer;
+}
+
+void* MemoryConcatByte(MemoryArena memoryArena, size_t stride, const void* source1, size_t source1Length, const void* source2, size_t source2Length)
+{
+    auto destination = MemoryArenaPush(memoryArena, source1Length + source2Length);
+
+    MemoryCopyByte(stride, destination.Pointer, source1Length, source1, source1Length);
+    MemoryCopyByte(stride, destination.Pointer + (source1Length * stride), source2Length, source2, source2Length);
+
+    return destination.Pointer;
+}
+
+void* MemoryConcatDefault(MemoryArena memoryArena, size_t stride, const void* source1, size_t source1Length, const void* source2, size_t source2Length)
+{
+    auto destination = MemoryArenaPush(memoryArena, stride * (source1Length + source2Length));
+
+    MemoryCopyDefault(stride, destination.Pointer, source1Length, source1, source1Length);
+    MemoryCopyDefault(stride, destination.Pointer + (source1Length * stride), source2Length, source2, source2Length);
+
+    return destination.Pointer;
+}
+
 
 // TODO: Move that to the standard library
 
