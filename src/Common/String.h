@@ -3,6 +3,8 @@
 #include "Types.h"
 #include "Memory.h"
 
+// TODO: Move this header to a standard one? Not a header just for strings?
+
 DefineSpan(String, ReadOnlySpanChar)
 
 static inline ReadOnlySpanChar String(const char* string)

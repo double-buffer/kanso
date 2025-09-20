@@ -71,6 +71,8 @@ typedef struct
 {
     struct MemoryArenaStorage* Storage;
     uint8_t* StackStartPointer;
+    uint8_t* StackExtraStartPointer;
+    uint8_t StackLevel;
 } MemoryArena;
 
 typedef struct 
@@ -103,15 +105,10 @@ void MemoryArenaClear(MemoryArena memoryArena);
 
 bool MemoryArenaCommit(MemoryArena memoryArena, SpanUint8 range);
 
+MemoryArena GetStackMemoryArena();
+void ReleaseStackMemoryArena(MemoryArena* stackMemoryArena);
 
-MemoryArena CreateStackMemoryArena();
-void ReleaseStackMemoryArena(void* pointer);
-
-#define GetStackMemoryArena() \
-    (__extension__ ({ \
-        [[gnu::cleanup(ReleaseStackMemoryArena)]] auto stackMemoryArena = CreateStackMemoryArena(); \
-        stackMemoryArena; \
-    }))
+#define StackMemoryArena(name) [[gnu::cleanup(ReleaseStackMemoryArena)]] MemoryArena name = GetStackMemoryArena();
 
 //---------------------------------------------------------------------------------------
 // General
@@ -146,17 +143,14 @@ void* MemoryConcatDefault(MemoryArena memoryArena, size_t stride, const void* so
 
 // TODO: It works but the only drawback now is that if source1 is a ReadOnlySpan, it will create a ReadOnlySpan as a result
 #define MemoryConcat(memoryArena, source1, source2) \
-    (__extension__ ({ \
-        auto result = _Generic((source1).Pointer, \
-            char*: MemoryConcatChar, \
-            const char*: MemoryConcatChar, \
-            uint8_t*: MemoryConcatByte, \
-            const uint8_t*: MemoryConcatByte, \
-            default: MemoryConcatDefault \
-        )(memoryArena, sizeof(*(source1).Pointer), (source1).Pointer, (source1).Length, (source2).Pointer, (source2).Length); \
         (typeof(source1)) \
         { \
-            .Pointer = result, \
-            .Length  = (source1).Length + (source2.Length) \
-        };\
-    }))
+            .Pointer = _Generic((source1).Pointer, \
+                    char*: MemoryConcatChar, \
+                    const char*: MemoryConcatChar, \
+                    uint8_t*: MemoryConcatByte, \
+                    const uint8_t*: MemoryConcatByte, \
+                    default: MemoryConcatDefault \
+                )(memoryArena, sizeof(*(source1).Pointer), (source1).Pointer, (source1).Length, (source2).Pointer, (source2).Length), \
+            .Length  = (source1).Length + (source2).Length \
+        };

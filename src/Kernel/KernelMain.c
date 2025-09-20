@@ -1,9 +1,9 @@
 #include "Types.h"
 #include "String.h"
 #include "Memory.h"
+#include "Console.h"
 #include "Version.h"
 #include "Platform.h"
-#include "KernelConsole.h"
 #include "Kernel.h"
 
 const char KernelLogo[] = 
@@ -28,7 +28,7 @@ void KernelTrapHandler(CpuTrapFrame* trapFrame)
                 BiosSetTimer(CpuReadTime() + 10'000'000);
                 
                 auto programCounter = CpuTrapFrameGetProgramCounter(trapFrame);
-                KernelConsolePrint(String("Kernel trap handler: %l (PC=%x).\n"), CpuReadTime(), programCounter);
+                ConsolePrint(String("Kernel trap handler: %l (PC=%x).\n"), CpuReadTime(), programCounter);
 
                 return;
 
@@ -79,16 +79,16 @@ void KernelInit()
 
     auto platformInformation = PlatformGetInformation();
 
-    KernelConsoleSetForegroundColor(KernelConsoleColorAccent);
-    KernelConsolePrint(String("\n\n%s\n"), KernelLogo);
-    KernelConsoleResetStyle();
+    ConsoleSetForegroundColor(ConsoleColorAccent);
+    ConsolePrint(String("\n\n%s\n"), KernelLogo);
+    ConsoleResetStyle();
 
-    KernelConsoleSetForegroundColor(KernelConsoleColorHighlight);
-    KernelConsolePrint(String("Kanso OS %s "), KANSO_VERSION_FULL);
-    KernelConsolePrint(String("(%s %d-bit)\n\n"), platformInformation.SystemInformation.Name.Pointer, platformInformation.SystemInformation.ArchitectureBits);
-    KernelConsoleResetStyle();
+    ConsoleSetForegroundColor(ConsoleColorHighlight);
+    ConsolePrint(String("Kanso OS %s "), KANSO_VERSION_FULL);
+    ConsolePrint(String("(%s %d-bit)\n\n"), platformInformation.SystemInformation.Name.Pointer, platformInformation.SystemInformation.ArchitectureBits);
+    ConsoleResetStyle();
 
-    KernelConsolePrint(String("Boot Cpu ID: %d\n"), platformInformation.BootCpuId);
+    ConsolePrint(String("Boot Cpu ID: %d\n"), platformInformation.BootCpuId);
 }
 
 void KernelMain()
@@ -100,7 +100,7 @@ void KernelMain()
 
     while (true)
     {
-        KernelConsolePrint(String("WFI\n"));
+        ConsolePrint(String("WFI\n"));
 
         //CpuGenerateInvalidInstruction();
         CpuWaitForInterrupt();

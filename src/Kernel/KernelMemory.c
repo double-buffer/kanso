@@ -1,4 +1,4 @@
-#include "KernelConsole.h"
+#include "Console.h"
 #include "Memory.h"
 #include "Platform.h"
 #include "Types.h"
@@ -42,7 +42,7 @@ static void KernelInitModeSetupBitArrayAllocator()
 
     auto maxPageCount = memoryState->InitHeap.Length / globalKernelMemoryState.PageSize;
 
-    auto bitmapStorageSizeInBytes = DivRoundUp(maxPageCount, 8);
+    auto bitmapStorageSizeInBytes = AlignUp(DivRoundUp(maxPageCount, 8), sizeof(size_t));
     auto bitmapStoragePageCount = DivRoundUp(bitmapStorageSizeInBytes, globalKernelMemoryState.PageSize);
 
     memoryState->BitArray = CreateBitArrayWithBitCount(SpanCast(size_t, SpanSlice(memoryState->InitHeap, 0, bitmapStorageSizeInBytes)), maxPageCount);

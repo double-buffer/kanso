@@ -1,6 +1,6 @@
 #include "Memory.h"
 #include "Types.h"
-#include "../../KernelConsole.h"
+#include "Console.h"
 #include "../../Platform.h"
 
 #define RISCV_INTERRUPT_SOFTWARE 1
@@ -253,28 +253,28 @@ inline void CpuWaitForInterrupt()
 
 static void LogRegister(ReadOnlySpanChar name, uintptr_t value, uint8_t padding, bool insertTab)
 {
-    KernelConsoleSetForegroundColor(KernelConsoleColorKeyword);
-    KernelConsolePrint(String("%s"), name);
-    KernelConsoleResetStyle();
+    ConsoleSetForegroundColor(ConsoleColorKeyword);
+    ConsolePrint(String("%s"), name);
+    ConsoleResetStyle();
 
-    KernelConsolePrint(String(":"));
+    ConsolePrint(String(":"));
 
     for (uint32_t i = 0; i < padding; i++)
     {
-        KernelConsolePrint(String(" "));
+        ConsolePrint(String(" "));
     }
 
-    KernelConsoleSetForegroundColor(KernelConsoleColorNumeric);
-    KernelConsolePrint(String("%x"), value);
-    KernelConsoleResetStyle();
+    ConsoleSetForegroundColor(ConsoleColorNumeric);
+    ConsolePrint(String("%x"), value);
+    ConsoleResetStyle();
 
     if (insertTab)
     {
-        KernelConsolePrint(String("    "));
+        ConsolePrint(String("    "));
     }
     else
     {
-        KernelConsolePrint(String("\n"));
+        ConsolePrint(String("\n"));
     }
 }
 
@@ -335,18 +335,18 @@ static void LogSupervisorRegisters(const SupervisorRegisters* supervisorRegister
 
 void CpuLogTrapFrame(const CpuTrapFrame* trapFrame)
 {
-    KernelConsoleSetForegroundColor(KernelConsoleColorInfo);
-    KernelConsolePrintBoxMessage(String("Trap Frame"));
-    KernelConsoleResetStyle();
+    ConsoleSetForegroundColor(ConsoleColorInfo);
+    ConsolePrintBoxMessage(String("Trap Frame"));
+    ConsoleResetStyle();
 
-    KernelConsoleSetForegroundColor(KernelConsoleColorHighlight);
-    KernelConsolePrint(String("General Purpose Registers:\n"));
-    KernelConsoleResetStyle();
+    ConsoleSetForegroundColor(ConsoleColorHighlight);
+    ConsolePrint(String("General Purpose Registers:\n"));
+    ConsoleResetStyle();
     LogGeneralPurposeRegisters(&trapFrame->GeneralPurposeRegisters);
 
-    KernelConsoleSetForegroundColor(KernelConsoleColorHighlight);
-    KernelConsolePrint(String("\nSupervisor Registers:\n"));
-    KernelConsoleResetStyle();
+    ConsoleSetForegroundColor(ConsoleColorHighlight);
+    ConsolePrint(String("\nSupervisor Registers:\n"));
+    ConsoleResetStyle();
     LogSupervisorRegisters(&trapFrame->SupervisorRegisters);
 }
 

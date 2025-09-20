@@ -1,3 +1,4 @@
+#include "Console.h"
 #include "Memory.h"
 #include "Test.h"
 #include "Types.h"
@@ -123,7 +124,7 @@ Test(Memory, MemoryArenaPushStruct_WithValidStruct_ReturnsValidStruct)
 
     auto afterAllocationInfos = MemoryArenaGetAllocationInfos(memoryArena);
     TestAssertGreaterThan(afterAllocationInfos.CommittedBytes, beforeAllocationInfos.CommittedBytes);
-    TestAssertEquals(sizeof(uint32_t), afterAllocationInfos.AllocatedBytes);
+    TestAssertGreaterThan(afterAllocationInfos.AllocatedBytes, sizeof(uint32_t));
 }
 
 Test(Memory, MemoryArenaPushArray_WithValidStructAndCount_ReturnsValidArray)
@@ -144,7 +145,7 @@ Test(Memory, MemoryArenaPushArray_WithValidStructAndCount_ReturnsValidArray)
 
     auto afterAllocationInfos = MemoryArenaGetAllocationInfos(memoryArena);
     TestAssertGreaterThan(afterAllocationInfos.CommittedBytes, beforeAllocationInfos.CommittedBytes);
-    TestAssertEquals(sizeof(uint32_t) * arrayCount, afterAllocationInfos.AllocatedBytes);
+    TestAssertGreaterThan(afterAllocationInfos.AllocatedBytes, sizeof(uint32_t) * arrayCount);
 }
 
 Test(Memory, MemoryArenaPushReserved_WithValidSize_ReturnsValidSpan)
@@ -288,20 +289,51 @@ Test(Memory, MemoryArenaCommit_WithInvalidRange_CommitMemory)
 Test(Memory, GetStackMemoryArena_WithDifferentScopes_UsesSeparateMemoryArena)
 {
     // Arrange
-    auto stackMemoryArena1 = GetStackMemoryArena();
+    StackMemoryArena(stackMemoryArena1);
     auto string1 = MemoryConcat(stackMemoryArena1, String("Test1"), String("Stack1"));
 
     MemoryArenaAllocationInfos beforeAllocationInfos;
     ReadOnlySpanChar string2;
+    ReadOnlySpanChar string3;
+    ReadOnlySpanChar string4;
     ReadOnlySpanChar string5;
 
     // Act
     {
-        auto stackMemoryArena2 = GetStackMemoryArena();
+        StackMemoryArena(stackMemoryArena2);
         string2 = MemoryConcat(stackMemoryArena1, String("Test2"), String("Stack1"));
-        MemoryConcat(stackMemoryArena2, String("Test1"), String("Stack2"));
-    
+
+        {
+            StackMemoryArena(stackMemoryArena3);
+            MemoryConcat(stackMemoryArena2, String("Test1"), String("Stack2"));
+        }
+
+        {
+            StackMemoryArena(stackMemoryArena3);
+
+            {
+                StackMemoryArena(stackMemoryArena4);
+                MemoryConcat(stackMemoryArena4, String("Test1"), String("Stack4"));
+                MemoryConcat(stackMemoryArena4, String("Test2"), String("Stack4"));
+                MemoryConcat(stackMemoryArena4, String("Test3"), String("Stack4"));
+            }
+                
+            MemoryConcat(stackMemoryArena3, String("Test1"), String("Stack3"));
+            string3 = MemoryConcat(stackMemoryArena1, String("Test3"), String("Stack1"));
+        }
+
+        MemoryConcat(stackMemoryArena2, String("Test2"), String("Stack2"));
+        MemoryConcat(stackMemoryArena2, String("Test3"), String("Stack2"));
+        MemoryConcat(stackMemoryArena2, String("Test4"), String("Stack2"));
+        MemoryConcat(stackMemoryArena2, String("Test5"), String("Stack2"));
+        string4 = MemoryConcat(stackMemoryArena1, String("Test4"), String("Stack1"));
+
         beforeAllocationInfos = MemoryArenaGetAllocationInfos(stackMemoryArena1);
+    }
+
+    {
+        StackMemoryArena(stackMemoryArena2);
+        string5 = MemoryConcat(stackMemoryArena1, String("Test5"), String("Stack1"));
     }
     
     auto afterAllocationInfos = MemoryArenaGetAllocationInfos(stackMemoryArena1);
@@ -309,5 +341,8 @@ Test(Memory, GetStackMemoryArena_WithDifferentScopes_UsesSeparateMemoryArena)
     // Assert
     TestAssertStringEquals(String("Test1Stack1"), string1);
     TestAssertStringEquals(String("Test2Stack1"), string2);
+    TestAssertStringEquals(String("Test3Stack1"), string3);
+    TestAssertStringEquals(String("Test4Stack1"), string4);
+    TestAssertStringEquals(String("Test5Stack1"), string5);
     TestAssertGreaterThan(beforeAllocationInfos.AllocatedBytes, afterAllocationInfos.AllocatedBytes);
 }

@@ -150,11 +150,11 @@ bool DeviceTreeReadNode(BinaryReader* reader, size_t stringDataOffset)
         BinaryReadString(reader, &name);
         BinarySetOffset(reader, AlignUp(reader->CurrentOffset, 4));
 
-        KernelConsolePrint(String("BeginNode: '%s'\n"), name);
+        ConsolePrint(String("BeginNode: '%s'\n"), name);
     }
     else if (testNode == 0x02)
     {
-        KernelConsolePrint(String("EndNode.\n"));
+        ConsolePrint(String("EndNode.\n"));
     }
     else if (testNode == 0x03)
     {
@@ -171,7 +171,7 @@ bool DeviceTreeReadNode(BinaryReader* reader, size_t stringDataOffset)
         BinaryReadString(reader, &name);
 
         BinarySetOffset(reader, AlignUp(offset, 4));
-        KernelConsolePrint(String("  Property: %s\n"), name);
+        ConsolePrint(String("  Property: %s\n"), name);
     }
     else if (testNode == 0x09)
     {
@@ -188,7 +188,7 @@ PlatformDevices PlatformGetDevices()
     auto dtbMagic = ConvertBytesToUint32(dtbHeaderData, ByteOrder_BigEndian);
     auto sizeInBytes = ConvertBytesToUint32(SpanSliceFrom(dtbHeaderData, sizeof(uint32_t)), ByteOrder_BigEndian);
 
-    KernelConsolePrint(String("MagicDTB: %x\n"), dtbMagic);
+    ConsolePrint(String("MagicDTB: %x\n"), dtbMagic);
     // TODO: Check magic
     // TODO: Verify version
 
@@ -215,7 +215,7 @@ PlatformDevices PlatformGetDevices()
 
         if (reservedOffset != 0 && reservedSize != 0)
         {
-            KernelConsolePrint(String("Reserved Memory: %x (size: %x)\n"), reservedOffset, reservedSize);
+            ConsolePrint(String("Reserved Memory: %x (size: %x)\n"), reservedOffset, reservedSize);
         }
     }
 

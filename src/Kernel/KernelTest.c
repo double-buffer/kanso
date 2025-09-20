@@ -1,7 +1,7 @@
 #include "Memory.h"
 #include "Test.h"
 #include "String.h"
-#include "KernelConsole.h"
+#include "Console.h"
 #include "Kernel.h"
 #include "Platform.h"
 #include "Version.h"
@@ -48,35 +48,36 @@ void KernelTrapHandler(CpuTrapFrame* trapFrame)
     KernelFailure(String("%s. (Code=%x, Extra=%x)"), errorName, trapCause.Code, trapCause.ExtraInformation);
 }
 
+// TODO: Move that out of the way from the kernel. It will be the same code in user mode.
 void KernelTestHandler(TestRunState state, ReadOnlySpanChar message, ...)
 {
     if (state == TestRunState_Start)
     {
-        KernelConsoleSetForegroundColor(KernelConsoleColorSuccess);
-        KernelConsolePrint(String("[ RUN      ]"));
+        ConsoleSetForegroundColor(ConsoleColorSuccess);
+        ConsolePrint(String("[ RUN      ]"));
     }
     else if (state == TestRunState_OK)
     {
-        KernelConsoleSetForegroundColor(KernelConsoleColorSuccess);
-        KernelConsolePrint(String("[       OK ]"));
+        ConsoleSetForegroundColor(ConsoleColorSuccess);
+        ConsolePrint(String("[       OK ]"));
     }
     else if (state == TestRunState_Passed)
     {
-        KernelConsoleSetForegroundColor(KernelConsoleColorSuccess);
-        KernelConsolePrint(String("[  PASSED  ]"));
+        ConsoleSetForegroundColor(ConsoleColorSuccess);
+        ConsolePrint(String("[  PASSED  ]"));
     }
     else if (state == TestRunState_Failed)
     {
-        KernelConsoleSetForegroundColor(KernelConsoleColorError);
-        KernelConsolePrint(String("[  FAILED  ]"));
+        ConsoleSetForegroundColor(ConsoleColorError);
+        ConsolePrint(String("[  FAILED  ]"));
     }
     else if (state == TestRunState_Separator)
     {
-        KernelConsoleSetForegroundColor(KernelConsoleColorSuccess);
-        KernelConsolePrint(String("[==========]"));
+        ConsoleSetForegroundColor(ConsoleColorSuccess);
+        ConsolePrint(String("[==========]"));
     }
 
-    KernelConsoleResetStyle();
+    ConsoleResetStyle();
 
     va_list vargs;
     va_start(vargs, message);
@@ -84,7 +85,7 @@ void KernelTestHandler(TestRunState state, ReadOnlySpanChar message, ...)
     auto tmp = StackAlloc(char, 256);
     StringFormatVargs(&tmp, message, vargs);
 
-    KernelConsolePrint(String(" %s\n"), tmp);
+    ConsolePrint(String(" %s\n"), tmp);
 
     va_end(vargs);
 }
@@ -95,10 +96,10 @@ void KernelInit()
     
     auto platformInformation = PlatformGetInformation();
 
-    KernelConsoleSetForegroundColor(KernelConsoleColorHighlight);
-    KernelConsolePrint(String("\n\nKanso OS KernelInit Tests %s "), KANSO_VERSION_FULL);
-    KernelConsolePrint(String("(%s %d-bit)\n\n"), platformInformation.SystemInformation.Name.Pointer, platformInformation.SystemInformation.ArchitectureBits);
-    KernelConsoleResetStyle();
+    ConsoleSetForegroundColor(ConsoleColorHighlight);
+    ConsolePrint(String("\n\nKanso OS KernelInit Tests %s "), KANSO_VERSION_FULL);
+    ConsolePrint(String("(%s %d-bit)\n\n"), platformInformation.SystemInformation.Name.Pointer, platformInformation.SystemInformation.ArchitectureBits);
+    ConsoleResetStyle();
 
     TestRun(KernelTestHandler, String("Types|Memory"));
 
@@ -110,10 +111,10 @@ void KernelMain()
 {
     auto platformInformation = PlatformGetInformation();
 
-    KernelConsoleSetForegroundColor(KernelConsoleColorHighlight);
-    KernelConsolePrint(String("\n\nKanso OS KernelMain Tests %s "), KANSO_VERSION_FULL);
-    KernelConsolePrint(String("(%s %d-bit)\n\n"), platformInformation.SystemInformation.Name.Pointer, platformInformation.SystemInformation.ArchitectureBits);
-    KernelConsoleResetStyle();
+    ConsoleSetForegroundColor(ConsoleColorHighlight);
+    ConsolePrint(String("\n\nKanso OS KernelMain Tests %s "), KANSO_VERSION_FULL);
+    ConsolePrint(String("(%s %d-bit)\n\n"), platformInformation.SystemInformation.Name.Pointer, platformInformation.SystemInformation.ArchitectureBits);
+    ConsoleResetStyle();
 
     //TestRun(KernelTestHandler, String(""));
     BiosReset(BiosResetType_Shutdown, BiosResetReason_None);

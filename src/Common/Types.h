@@ -22,6 +22,17 @@ typedef __SIZE_TYPE__ size_t;
 #define BITS_PER_BYTE 8u
 #define BITS_PER_SIZE_TYPE (sizeof(size_t) * BITS_PER_BYTE)
 #define MASK_SIZE_TYPE (BITS_PER_SIZE_TYPE - 1)
+
+#define UINT8_MAX __UINT8_MAX__
+#define UINT16_MAX __UINT16_MAX__
+#define UINT32_MAX __UINT32_MAX__
+#define UINT64_MAX __UINT64_MAX__
+
+#define INT8_MAX __INT8_MAX__
+#define INT16_MAX __INT16_MAX__
+#define INT32_MAX __INT32_MAX__
+#define INT64_MAX __INT64_MAX__
+
 #define SIZE_MAX __SIZE_MAX__
 
 #define AlignUp(value, align) __builtin_align_up(value, align)
@@ -103,12 +114,7 @@ typedef enum
 
 #define SpanCast(type, span) CreateSpan(type, (type*)(span).Pointer, (sizeof(*(span).Pointer) * (span).Length) / sizeof(type))
 
-#define StackAlloc(type, length) \
-    (__extension__ ({ \
-        static_assert((length) >= 0, "StackAlloc: length must be an integer-constant expression"); \
-        type array[(length)]; \
-        CreateSpan(type, array, (size_t)(length)); \
-    }))
+#define StackAlloc(type, length) CreateSpan(type, (type*)__builtin_alloca(sizeof(type) * length), length);
 
 #define SpanSlice(span, offset, length) \
 ( \

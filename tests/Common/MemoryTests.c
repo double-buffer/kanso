@@ -154,3 +154,34 @@ Test(Memory, MemoryConcat_WithChar_HasCorrectValues)
 
     TestAssertEquals(0, SpanAt(result, result.Length));
 }
+
+Test(Memory, MemoryConcat_WithUint32_HasCorrectValues)
+{
+    // Arrange
+    const size_t memoryArenaSize = 1024;
+    const uint8_t itemCount = 10;
+    const uint32_t source1Value = 5;
+    const uint32_t source2Value = 28;
+
+    auto memoryArena = CreateMemoryArena(memoryArenaSize);
+
+    auto source1 = StackAlloc(uint32_t, itemCount);
+    MemorySet(source1, source1Value);
+
+    auto source2 = StackAlloc(uint32_t, itemCount);
+    MemorySet(source2, source2Value);
+
+    // Act
+    auto result = MemoryConcat(memoryArena, source1, source2);
+
+    // Assert
+    TestAssertEquals(MemoryError_None, MemoryGetLastError());
+    TestAssertNotEquals(nullptr, result.Pointer); 
+    TestAssertEquals(itemCount * 2, result.Length); 
+
+    for (uint32_t i = 0; i < itemCount; i++)
+    {
+        TestAssertEquals(source1Value, SpanAt(result, i));
+        TestAssertEquals(source2Value, SpanAt(result, itemCount + i));
+    }
+}

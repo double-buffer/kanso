@@ -1,31 +1,29 @@
 ENTRY(boot)
 
-MEMORY
-{
-    kernel_space (rwx) : ORIGIN = 0x80200000, LENGTH = 64 * 1024 * 1024
-}
-
 SECTIONS 
 {
+    . = 0x80200000;
+
     .text :
     {
         *(.text.kernel) 
         *(.text);
-    } > kernel_space
+    }
 
     .text.interrupt : ALIGN(4) 
     {
+        *(.text.interrupt .text.interrupt.*)
     }
 
     .data : ALIGN(8)
     {
         *(.data);
-    } > kernel_space
+    } 
 
     .rodata : ALIGN(8) 
     {
         *(.rodata);
-    } > kernel_space
+    }
 
     .init_array ALIGN(8) :
     {
@@ -33,18 +31,20 @@ SECTIONS
         KEEP(*(SORT_BY_INIT_PRIORITY(.init_array.*)))
         KEEP(*(.init_array))
         __INIT_ARRAY_END = .;
-    } > kernel_space
+    }
 
-    .bss : ALIGN(8) 
+    .bss (NOLOAD) : ALIGN(8) 
     {
         __BSS = .;
-        *(.bss .sbss);
+        *(.bss .bss.* .sbss .sbss.*)
+        *(COMMON)
         __BSS_END = .;
-    } > kernel_space
+    }
 
     . = ALIGN(8);
     . += 128 * 1024; /* 128KB */
     __STACK_PTR = .;
+
     . = ALIGN(4096);
     __INIT_HEAP_START = .;
     . += 64 * 1024 * 1024; /* 64MB, TODO: Review this later, we don't need that much for init mode */
