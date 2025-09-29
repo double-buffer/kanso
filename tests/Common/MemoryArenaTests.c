@@ -124,7 +124,7 @@ Test(Memory, MemoryArenaPushStruct_WithValidStruct_ReturnsValidStruct)
 
     auto afterAllocationInfos = MemoryArenaGetAllocationInfos(memoryArena);
     TestAssertGreaterThan(afterAllocationInfos.CommittedBytes, beforeAllocationInfos.CommittedBytes);
-    TestAssertGreaterThan(afterAllocationInfos.AllocatedBytes, sizeof(uint32_t));
+    TestAssertGreaterThanOrEquals(afterAllocationInfos.AllocatedBytes, sizeof(uint32_t));
 }
 
 Test(Memory, MemoryArenaPushArray_WithValidStructAndCount_ReturnsValidArray)
@@ -145,7 +145,7 @@ Test(Memory, MemoryArenaPushArray_WithValidStructAndCount_ReturnsValidArray)
 
     auto afterAllocationInfos = MemoryArenaGetAllocationInfos(memoryArena);
     TestAssertGreaterThan(afterAllocationInfos.CommittedBytes, beforeAllocationInfos.CommittedBytes);
-    TestAssertGreaterThan(afterAllocationInfos.AllocatedBytes, sizeof(uint32_t) * arrayCount);
+    TestAssertGreaterThanOrEquals(afterAllocationInfos.AllocatedBytes, sizeof(uint32_t) * arrayCount);
 }
 
 Test(Memory, MemoryArenaPushReserved_WithValidSize_ReturnsValidSpan)

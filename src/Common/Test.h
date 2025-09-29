@@ -63,6 +63,7 @@ extern MemoryArena globalTestMemoryArena;
 #define TestAssertEquals(expected, actual) TestAssertCore((expected) == (actual), expected, actual, "==")
 #define TestAssertNotEquals(expected, actual) TestAssertCore((expected) != (actual), expected, actual, "!=")
 #define TestAssertGreaterThan(expected, actual) TestAssertCore((expected) > (actual), expected, actual, ">")
+#define TestAssertGreaterThanOrEquals(expected, actual) TestAssertCore((expected) >= (actual), expected, actual, ">=")
 #define TestAssertIsTrue(actual) TestAssertCore(true == (actual), true, actual, "==")
 #define TestAssertIsFalse(actual) TestAssertCore(false == (actual), false, actual, "==")
 
