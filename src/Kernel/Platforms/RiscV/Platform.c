@@ -14,6 +14,8 @@ uintptr_t globalDeviceTreeData;
 
 PlatformInformation globalPlatformInformation = {};
 
+PlatformDevices PlatformGetDevices();
+
 // TODO: Merge get devices into one function. But maybe GetInformation is not great
 // because we retrieve the whole device map also
 PlatformInformation PlatformGetInformation()
@@ -31,6 +33,9 @@ PlatformInformation PlatformGetInformation()
             .BootCpuId = globalBootHartId,
             .InitHeap = CreateSpan(uint8_t, __INIT_HEAP_START, __INIT_HEAP_END - __INIT_HEAP_START)
         };
+
+        // TODO: Remove, this is just a test
+        PlatformGetDevices();
     }
 
     return globalPlatformInformation;
