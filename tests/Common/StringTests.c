@@ -69,12 +69,12 @@ Test(String, StringFormat_WithParameters_HasCorrectValues)
     const auto stringParameter = String("TestParameter");
     
     const auto finalString = String("Test: 28, TestParameter"); 
-    auto destination = StackAlloc(char, 64);
+    StackMemoryArena(stackMemoryArena);
 
     // Act
-    StringFormat(&destination, testString, intParameter, stringParameter);
+    auto destination = StringFormat(stackMemoryArena, testString, intParameter, stringParameter);
 
     // Assert
-    TestAssertStringEquals(finalString, ToReadOnlySpan(char, destination));
+    TestAssertStringEquals(finalString, destination);
 }
 

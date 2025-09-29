@@ -82,8 +82,8 @@ void KernelTestHandler(TestRunState state, ReadOnlySpanChar message, ...)
     va_list vargs;
     va_start(vargs, message);
 
-    auto tmp = StackAlloc(char, 256);
-    StringFormatVargs(&tmp, message, vargs);
+    StackMemoryArena(stackMemoryArena);
+    auto tmp = StringFormatVargs(stackMemoryArena, message, vargs);
 
     ConsolePrint(String(" %s\n"), tmp);
 
@@ -117,6 +117,7 @@ void KernelMain()
     ConsoleResetStyle();
 
     //TestRun(KernelTestHandler, String(""));
+
     BiosReset(BiosResetType_Shutdown, BiosResetReason_None);
 }
 

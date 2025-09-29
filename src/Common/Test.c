@@ -6,9 +6,8 @@ TestEntry globalTests[MAX_TESTS];
 uint32_t globalTestCount = 0;
 uint32_t globalCurrentTestIndex = 0;
 
-// TODO: Do someting better here?
-char globalTestLastErrorMessageStorage[TEST_ERROR_MESSAGE_LENGTH];
-SpanChar globalTestLastErrorMessage = { .Pointer = globalTestLastErrorMessageStorage, .Length = TEST_ERROR_MESSAGE_LENGTH };
+ReadOnlySpanChar globalTestLastErrorMessage = {};
+MemoryArena globalTestMemoryArena = {};
 
 void RegisterTest(ReadOnlySpanChar category, ReadOnlySpanChar name, TestFunction testFunction)
 {
@@ -28,9 +27,11 @@ void TestRun(TestLogHandler handler, ReadOnlySpanChar categoryFilters)
     StackMemoryArena(stackMemoryArena);
     uint32_t testRunCount = 0;
     auto splittedFilters = StringSplit(stackMemoryArena, categoryFilters, '|');
+    globalTestMemoryArena = CreateMemoryArena(KiloBytesToBytes(128));
 
     for (uint32_t i = 0; i < globalTestCount; i++)
     {
+        MemoryArenaClear(globalTestMemoryArena);
         auto test = &globalTests[i];
         test->CanRun = true;
 

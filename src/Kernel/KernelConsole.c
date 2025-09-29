@@ -5,14 +5,14 @@
 
 void ConsolePrint(ReadOnlySpanChar message, ...)
 {
-    auto output = StackAlloc(char, 2048);
+    StackMemoryArena(stackMemoryArena);
 
     va_list vargs;
     va_start(vargs, message);
     
-    StringFormatVargs(&output, message, vargs);
+    auto output = StringFormatVargs(stackMemoryArena, message, vargs);
 
     va_end(vargs);
     
-    BiosDebugConsoleWrite(ToReadOnlySpan(char, output));
+    BiosDebugConsoleWrite(output);
 }

@@ -14,12 +14,10 @@ static inline ReadOnlySpanChar String(const char* string)
 
 bool StringEquals(ReadOnlySpanChar string1, ReadOnlySpanChar string2);
 
-// TODO: Replace that with a memory arena
 ReadOnlySpanString StringSplit(MemoryArena memoryArena, ReadOnlySpanChar value, char separator);
 
-// TODO: Replace that with a memory arena
-void StringFormat(SpanChar* destination, ReadOnlySpanChar message, ...);
-void StringFormatVargs(SpanChar* destination, ReadOnlySpanChar message, va_list vargs);
+ReadOnlySpanChar StringFormat(MemoryArena memoryArena, ReadOnlySpanChar message, ...);
+ReadOnlySpanChar StringFormatVargs(MemoryArena memoryArena, ReadOnlySpanChar message, va_list vargs);
 
 
 // TODO: Move that to the standard library

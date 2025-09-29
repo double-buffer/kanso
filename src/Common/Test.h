@@ -32,7 +32,8 @@ typedef struct
 extern TestEntry globalTests[MAX_TESTS];
 extern uint32_t globalTestCount;
 extern uint32_t globalCurrentTestIndex;
-extern SpanChar globalTestLastErrorMessage;
+extern ReadOnlySpanChar globalTestLastErrorMessage;
+extern MemoryArena globalTestMemoryArena;
 
 
 #define Test(category, name) \
@@ -54,7 +55,7 @@ extern SpanChar globalTestLastErrorMessage;
             if (!testEntry->HasError) \
             { \
                 testEntry->HasError = true; \
-                StringFormat(&globalTestLastErrorMessage, String("%s\n  Expected: %s\n    Actual: %d %s %d"), __FILE__, #expr, expected, operator, actual); \
+                globalTestLastErrorMessage = StringFormat(globalTestMemoryArena, String("%s\n  Expected: %s\n    Actual: %d %s %d"), __FILE__, #expr, expected, operator, actual); \
             } \
         } \
     } while (false)
@@ -74,13 +75,13 @@ extern SpanChar globalTestLastErrorMessage;
             if (expected.Length != actual.Length) \
             { \
                 testEntry->HasError = true; \
-                StringFormat(&globalTestLastErrorMessage, String("%s\n  Expected: (%s.Length) == (%s.Length)\n    Actual: %d == %d"), __FILE__, #expected, #actual, expected.Length, actual.Length); \
+                globalTestLastErrorMessage = StringFormat(globalTestMemoryArena, String("%s\n  Expected: (%s.Length) == (%s.Length)\n    Actual: %d == %d"), __FILE__, #expected, #actual, expected.Length, actual.Length); \
             } \
             \
             if (!StringEquals(expected, actual)) \
             { \
                 testEntry->HasError = true; \
-                StringFormat(&globalTestLastErrorMessage, String("%s\n  Expected: (%s) == (%s)\n    Actual: \"%s\" == \"%s\""), __FILE__, #expected, #actual, expected.Pointer, actual.Pointer); \
+                globalTestLastErrorMessage = StringFormat(globalTestMemoryArena, String("%s\n  Expected: (%s) == (%s)\n    Actual: \"%s\" == \"%s\""), __FILE__, #expected, #actual, expected.Pointer, actual.Pointer); \
             } \
         } \
     } while (false)

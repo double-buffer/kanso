@@ -5,6 +5,8 @@
 
 void KernelFailureCore(ReadOnlySpanChar file, uint32_t line, ReadOnlySpanChar message, ...)
 {
+    StackMemoryArena(stackMemoryArena);
+
     ConsoleSetForegroundColor(ConsoleColorError);
     ConsolePrintBoxMessage(String("Kernel Failure"));
     ConsolePrint(String("%s:%d\n"), file, line);
@@ -12,8 +14,7 @@ void KernelFailureCore(ReadOnlySpanChar file, uint32_t line, ReadOnlySpanChar me
     va_list vargs;
     va_start(vargs, message);
 
-    auto tmp = StackAlloc(char, 256);
-    StringFormatVargs(&tmp, message, vargs);
+    auto tmp = StringFormatVargs(stackMemoryArena, message, vargs);
 
     ConsolePrint(String("%s\n\n"), tmp);
     ConsoleResetStyle();

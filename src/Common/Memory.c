@@ -13,7 +13,7 @@ MemoryError globalMemoryError = MemoryError_None;
 // MemoryArena
 //---------------------------------------------------------------------------------------
 
-#define STACK_MEMORY_ARENA_DEFAULT_SIZE KiloBytesToBytes(128)
+#define STACK_MEMORY_ARENA_DEFAULT_SIZE MegaBytesToBytes(4)
 
 typedef struct MemoryArenaStorage
 {
