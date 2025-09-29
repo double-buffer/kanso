@@ -13,6 +13,8 @@ MemoryError globalMemoryError = MemoryError_None;
 // MemoryArena
 //---------------------------------------------------------------------------------------
 
+#define STACK_MEMORY_ARENA_DEFAULT_SIZE KiloBytesToBytes(128)
+
 typedef struct MemoryArenaStorage
 {
     MemoryReservation MemoryReservation;
@@ -80,7 +82,7 @@ MemoryArenaStorage* GetMemoryArenaWorkingStorage(MemoryArena memoryArena)
         {
             // TODO: Replace the size by a constant depending on the boot phase
             // TODO: Do an util method for bytes
-            globalStackMemoryArenaExtraStorage = CreateMemoryArenaStorage(1024);
+            globalStackMemoryArenaExtraStorage = CreateMemoryArenaStorage(STACK_MEMORY_ARENA_DEFAULT_SIZE);
         }
 
         // TODO: Replace by a min function
@@ -227,7 +229,7 @@ MemoryArena GetStackMemoryArena()
     {
         // TODO: Replace the size by a constant depending on the boot phase
         // TODO: Do an util method for bytes
-        globalStackMemoryArenaStorage = CreateMemoryArenaStorage(1024);
+        globalStackMemoryArenaStorage = CreateMemoryArenaStorage(STACK_MEMORY_ARENA_DEFAULT_SIZE);
     }
 
     globalStackMemoryArenaStorage->StackLevel++;

@@ -22,6 +22,14 @@ static inline MemoryError MemoryGetLastError()
 }
 
 //---------------------------------------------------------------------------------------
+// Utilities
+//---------------------------------------------------------------------------------------
+
+#define KiloBytesToBytes(value) (value) * 1024
+#define MegaBytesToBytes(value) KiloBytesToBytes((value)) * 1024
+#define GigaBytesToBytes(value) MegaBytesToBytes((value)) * 1024
+
+//---------------------------------------------------------------------------------------
 // Memory Allocation
 //---------------------------------------------------------------------------------------
 

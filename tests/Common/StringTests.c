@@ -49,10 +49,10 @@ Test(String, StringSplit_WithParameters_HasCorrectValues)
 {
     // Arrange
     const auto testString = String("Test1|Test2|Test3");
-    auto destination = StackAlloc(ReadOnlySpanChar, 64);
+    StackMemoryArena(stackMemoryArena);
 
     // Act
-    StringSplit(&destination, testString, '|');
+    auto destination = StringSplit(stackMemoryArena, testString, '|');
 
     // Assert
     TestAssertEquals(3, destination.Length);

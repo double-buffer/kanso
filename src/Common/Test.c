@@ -25,7 +25,9 @@ void RegisterTest(ReadOnlySpanChar category, ReadOnlySpanChar name, TestFunction
 
 void TestRun(TestLogHandler handler, ReadOnlySpanChar categoryFilters)
 {
+    StackMemoryArena(stackMemoryArena);
     uint32_t testRunCount = 0;
+    auto splittedFilters = StringSplit(stackMemoryArena, categoryFilters, '|');
 
     for (uint32_t i = 0; i < globalTestCount; i++)
     {
@@ -34,8 +36,7 @@ void TestRun(TestLogHandler handler, ReadOnlySpanChar categoryFilters)
 
         if (categoryFilters.Length > 0)
         {
-            auto splittedFilters = StackAlloc(ReadOnlySpanChar, 64);
-            StringSplit(&splittedFilters, categoryFilters, '|');
+            // TODO: This is really bad. Move that away from the loop
 
             auto testCanRun = false;
 

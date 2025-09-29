@@ -19,24 +19,28 @@ bool StringEquals(ReadOnlySpanChar string1, ReadOnlySpanChar string2)
     return true;
 }
 
-// TODO: Replace that with a memory arena
-void StringSplit(SpanString* result, ReadOnlySpanChar value, char separator)
+ReadOnlySpanString StringSplit(MemoryArena memoryArena, ReadOnlySpanChar value, char separator)
 {
     auto resultCount = 0;
     auto currentStartIndex = 0;
+
+    // TODO: Compute the needed length first?
+    auto result = MemoryArenaPushArray(ReadOnlySpanChar, memoryArena, 32);
 
     for (uint32_t i = 0; i < value.Length; i++)
     {
         if (SpanAt(value, i) == separator)
         {
-            SpanAt(*result, resultCount++) = SpanSlice(value, currentStartIndex, i - currentStartIndex);
+            SpanAt(result, resultCount++) = SpanSlice(value, currentStartIndex, i - currentStartIndex);
             currentStartIndex = i + 1;
         }
     }
 
-    SpanAt(*result, resultCount++) = SpanSlice(value, currentStartIndex, value.Length - currentStartIndex);
+    SpanAt(result, resultCount++) = SpanSlice(value, currentStartIndex, value.Length - currentStartIndex);
 
-    result->Length = resultCount;
+    result.Length = resultCount;
+
+    return ToReadOnlySpan(ReadOnlySpanChar, result);
 }
 
 // TODO: Replace that with a memory arena

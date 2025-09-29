@@ -15,7 +15,7 @@ static inline ReadOnlySpanChar String(const char* string)
 bool StringEquals(ReadOnlySpanChar string1, ReadOnlySpanChar string2);
 
 // TODO: Replace that with a memory arena
-void StringSplit(SpanString* result, ReadOnlySpanChar value, char separator);
+ReadOnlySpanString StringSplit(MemoryArena memoryArena, ReadOnlySpanChar value, char separator);
 
 // TODO: Replace that with a memory arena
 void StringFormat(SpanChar* destination, ReadOnlySpanChar message, ...);
