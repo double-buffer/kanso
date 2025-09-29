@@ -3,21 +3,37 @@
 #include "String.h"
 #include "Types.h"
 
+#define RISCV_MEMORY_PAGESIZE 4096
+
 // TODO: Add tests
+extern uint8_t __INIT_HEAP_START[];
+extern uint8_t __INIT_HEAP_END[];
 
 uintptr_t globalBootHartId;
 uintptr_t globalDeviceTreeData;
+
+PlatformInformation globalPlatformInformation = {};
 
 // TODO: Merge get devices into one function. But maybe GetInformation is not great
 // because we retrieve the whole device map also
 PlatformInformation PlatformGetInformation()
 {
-    return (PlatformInformation)
+    if (globalPlatformInformation.SystemInformation.ArchitectureBits == 0)
     {
-        .Name = String("RISC-V"),
-        .ArchitectureBits = PLATFORM_ARCHITECTURE_BITS,
-        .BootCpuId = globalBootHartId
-    };
+        globalPlatformInformation = (PlatformInformation)
+        {
+            .SystemInformation = 
+            {
+                .Name = String("RISC-V"),
+                .ArchitectureBits = PLATFORM_ARCHITECTURE_BITS,
+                .PageSize = RISCV_MEMORY_PAGESIZE
+            },
+            .BootCpuId = globalBootHartId,
+            .InitHeap = CreateSpan(uint8_t, __INIT_HEAP_START, __INIT_HEAP_END - __INIT_HEAP_START)
+        };
+    }
+
+    return globalPlatformInformation;
 }
 
 // TODO: Put that in a common binary reader or similar and do tests
@@ -32,7 +48,23 @@ uint32_t ConvertBytesToUint32(ReadOnlySpanUint8 data, ByteOrder byteOrder)
 
     if (PLATFORM_BYTE_ORDER != byteOrder)
     {
+        // TODO: Put that in Types.h
         result = __builtin_bswap32(result);
+    }
+
+    return result;
+}
+
+uint64_t ConvertBytesToUint64(ReadOnlySpanUint8 data, ByteOrder byteOrder)
+{
+    // TODO: Check length is at least 4
+    // TODO: For now big endian -> little endian conversion
+    auto result = *(uint64_t*)data.Pointer;
+
+    if (PLATFORM_BYTE_ORDER != byteOrder)
+    {
+        // TODO: Put that in Types.h
+        result = __builtin_bswap64(result);
     }
 
     return result;
@@ -63,6 +95,14 @@ uint32_t BinaryReadUint32(BinaryReader* reader)
     return ConvertBytesToUint32(span, reader->ByteOrder);
 }
 
+uint64_t BinaryReadUint64(BinaryReader* reader)
+{
+    auto span = SpanSliceFrom(reader->Data, reader->CurrentOffset);
+    reader->CurrentOffset += sizeof(uint64_t);
+
+    return ConvertBytesToUint64(span, reader->ByteOrder);
+}
+
 // TODO: When we have memoryarena we can maybe do better
 void BinaryReadBytes(BinaryReader* reader, size_t length, SpanUint8* output)
 {
@@ -85,9 +125,9 @@ void BinaryReadString(BinaryReader* reader, SpanChar* output)
 
     uint32_t length = 0;
     
-    while (span.Pointer[length] != '\0')
+    while (SpanAt(span, length) != '\0')
     {
-        output->Pointer[length] = span.Pointer[length];
+        SpanAt(*output, length) = SpanAt(span, length);
         length++;
     }
 
@@ -106,32 +146,32 @@ bool DeviceTreeReadNode(BinaryReader* reader, size_t stringDataOffset)
 
     if (testNode == 0x01)
     {
-        auto name = StackAllocChar(1024);
+        auto name = StackAlloc(char, 1024);
         BinaryReadString(reader, &name);
-        BinarySetOffset(reader, MemoryAlignUp(reader->CurrentOffset, 4));
+        BinarySetOffset(reader, AlignUp(reader->CurrentOffset, 4));
 
-        KernelConsolePrint(String("BeginNode: '%s'\n"), name);
+        ConsolePrint(String("BeginNode: '%s'\n"), name);
     }
     else if (testNode == 0x02)
     {
-        KernelConsolePrint(String("EndNode\n"));
+        ConsolePrint(String("EndNode.\n"));
     }
     else if (testNode == 0x03)
     {
         auto length = BinaryReadUint32(reader);
         auto nameOffset = BinaryReadUint32(reader);
 
-        auto value = StackAllocUint8(1024);
+        auto value = StackAlloc(uint8_t, 1024);
         BinaryReadBytes(reader, length, &value);
 
         auto offset = reader->CurrentOffset;
         BinarySetOffset(reader, stringDataOffset + nameOffset);
 
-        auto name = StackAllocChar(1024);
+        auto name = StackAlloc(char, 1024);
         BinaryReadString(reader, &name);
 
-        BinarySetOffset(reader, MemoryAlignUp(offset, 4));
-        KernelConsolePrint(String("  Property: %s\n"), name);
+        BinarySetOffset(reader, AlignUp(offset, 4));
+        ConsolePrint(String("  Property: %s\n"), name);
     }
     else if (testNode == 0x09)
     {
@@ -143,23 +183,42 @@ bool DeviceTreeReadNode(BinaryReader* reader, size_t stringDataOffset)
 
 PlatformDevices PlatformGetDevices()
 {
-    auto dtbHeaderData = CreateReadOnlySpanUint8((uint8_t*)globalDeviceTreeData, sizeof(uint32_t) * 2);
+    auto dtbHeaderData = CreateReadOnlySpan(uint8_t, (uint8_t*)globalDeviceTreeData, sizeof(uint32_t) * 2);
 
     auto dtbMagic = ConvertBytesToUint32(dtbHeaderData, ByteOrder_BigEndian);
     auto sizeInBytes = ConvertBytesToUint32(SpanSliceFrom(dtbHeaderData, sizeof(uint32_t)), ByteOrder_BigEndian);
 
-    KernelConsolePrint(String("MagicDTB: %x\n"), dtbMagic);
+    ConsolePrint(String("MagicDTB: %x\n"), dtbMagic);
     // TODO: Check magic
     // TODO: Verify version
+
+    // TODO: Parse reserved memory area?
     
-    auto dataSpan = CreateReadOnlySpanUint8((const uint8_t*)globalDeviceTreeData, sizeInBytes);
+    auto dataSpan = CreateReadOnlySpan(uint8_t, (const uint8_t*)globalDeviceTreeData, sizeInBytes);
     auto reader = CreateBinaryReader(dataSpan, ByteOrder_BigEndian);
     BinarySetOffset(&reader, sizeof(uint32_t) * 2);
 
     auto structureOffset = BinaryReadUint32(&reader);
     auto stringDataOffset = BinaryReadUint32(&reader);
+    auto reservedMemoryDataOffset = BinaryReadUint32(&reader);
 
     // TODO: Parse the rest of the header
+    BinarySetOffset(&reader, reservedMemoryDataOffset);
+
+    uint64_t reservedOffset = 1;
+    uint64_t reservedSize = 1;
+
+    while (reservedOffset != 0 && reservedSize != 0)
+    {
+        reservedOffset = BinaryReadUint64(&reader);
+        reservedSize = BinaryReadUint64(&reader);
+
+        if (reservedOffset != 0 && reservedSize != 0)
+        {
+            ConsolePrint(String("Reserved Memory: %x (size: %x)\n"), reservedOffset, reservedSize);
+        }
+    }
+
 
     BinarySetOffset(&reader, structureOffset);
 

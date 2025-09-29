@@ -15,25 +15,8 @@ Test(String, String_HasCorrectValues)
 
     for (uint32_t i = 0; i < result.Length; i++)
     {
-        TestAssertEquals(testString[i], result.Pointer[i]);
+        TestAssertEquals(testString[i], SpanAt(result, i));
     }
-}
-
-Test(String, StringFormat_WithParameters_HasCorrectValues)
-{
-    // Arrange
-    const auto testString = String("Test: %d, %s");
-    const auto intParameter = 28;
-    const auto stringParameter = String("TestParameter");
-    
-    const auto finalString = String("Test: 28, TestParameter"); 
-    auto destination = StackAllocChar(64);
-
-    // Act
-    StringFormat(&destination, testString, intParameter, stringParameter);
-
-    // Assert
-    TestAssertStringEquals(finalString, ToReadOnlySpanChar(destination));
 }
 
 Test(String, StringEquals_WithSameStrings_ReturnsTrue)
@@ -61,3 +44,37 @@ Test(String, StringEquals_WithDifferentStrings_ReturnsFalse)
     // Assert
     TestAssertEquals(false, result);
 }
+
+Test(String, StringSplit_WithParameters_HasCorrectValues)
+{
+    // Arrange
+    const auto testString = String("Test1|Test2|Test3");
+    StackMemoryArena(stackMemoryArena);
+
+    // Act
+    auto destination = StringSplit(stackMemoryArena, testString, '|');
+
+    // Assert
+    TestAssertEquals(3, destination.Length);
+    TestAssertStringEquals(String("Test1"), SpanAt(destination, 0));
+    TestAssertStringEquals(String("Test2"), SpanAt(destination, 1));
+    TestAssertStringEquals(String("Test3"), SpanAt(destination, 2));
+}
+
+Test(String, StringFormat_WithParameters_HasCorrectValues)
+{
+    // Arrange
+    const auto testString = String("Test: %d, %s");
+    const auto intParameter = 28;
+    const auto stringParameter = String("TestParameter");
+    
+    const auto finalString = String("Test: 28, TestParameter"); 
+    StackMemoryArena(stackMemoryArena);
+
+    // Act
+    auto destination = StringFormat(stackMemoryArena, testString, intParameter, stringParameter);
+
+    // Assert
+    TestAssertStringEquals(finalString, destination);
+}
+

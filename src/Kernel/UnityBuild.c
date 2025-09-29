@@ -1,6 +1,8 @@
 #include "../Common/UnityBuild.c"
 
 #include "Kernel.c"
+#include "KernelSystem.c"
+#include "KernelMemory.c"
 #include "KernelConsole.c"
 
 #ifdef BUILD_TESTS

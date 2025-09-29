@@ -1,9 +1,5 @@
 #include "String.h"
-
-ReadOnlySpanChar String(const char* string)
-{
-    return CreateReadOnlySpanChar(string, __builtin_strlen(string));
-}
+#include "Memory.h"
 
 bool StringEquals(ReadOnlySpanChar string1, ReadOnlySpanChar string2)
 {
@@ -14,7 +10,7 @@ bool StringEquals(ReadOnlySpanChar string1, ReadOnlySpanChar string2)
 
     for (uint32_t i = 0; i < string1.Length; i++)
     {
-        if (string1.Pointer[i] != string2.Pointer[i])
+        if (SpanAt(string1, i) != SpanAt(string2, i))
         {
             return false;
         }
@@ -23,17 +19,47 @@ bool StringEquals(ReadOnlySpanChar string1, ReadOnlySpanChar string2)
     return true;
 }
 
-void StringFormat(SpanChar* destination, ReadOnlySpanChar message, ...)
+ReadOnlySpanString StringSplit(MemoryArena memoryArena, ReadOnlySpanChar value, char separator)
+{
+    auto resultCount = 0;
+    auto currentStartIndex = 0;
+
+    // TODO: Compute the needed length first?
+    auto result = MemoryArenaPushArray(ReadOnlySpanChar, memoryArena, 32);
+
+    for (uint32_t i = 0; i < value.Length; i++)
+    {
+        if (SpanAt(value, i) == separator)
+        {
+            SpanAt(result, resultCount++) = SpanSlice(value, currentStartIndex, i - currentStartIndex);
+            currentStartIndex = i + 1;
+        }
+    }
+
+    SpanAt(result, resultCount++) = SpanSlice(value, currentStartIndex, value.Length - currentStartIndex);
+
+    result.Length = resultCount;
+
+    return ToReadOnlySpan(ReadOnlySpanChar, result);
+}
+
+ReadOnlySpanChar StringFormat(MemoryArena memoryArena, ReadOnlySpanChar message, ...)
 {
     va_list vargs;
     va_start(vargs, message);
-    StringFormatVargs(destination, message, vargs);
+    auto result = StringFormatVargs(memoryArena, message, vargs);
     va_end(vargs);
+
+    return result;
 }
 
 // TODO: Refactor this function
-void StringFormatVargs(SpanChar* destination, ReadOnlySpanChar message, va_list vargs)
+// TODO: It would be cool if we could handle ReadOnlySpan so we can take the length not until \0
+ReadOnlySpanChar StringFormatVargs(MemoryArena memoryArena, ReadOnlySpanChar message, va_list vargs)
 {
+    // TODO: Don't hardcode the size
+    auto destination = MemoryArenaPushArray(char, memoryArena, 1024);
+
     uint32_t length = 0;
     char* messagePointer = (char*)message.Pointer;
 
@@ -53,7 +79,7 @@ void StringFormatVargs(SpanChar* destination, ReadOnlySpanChar message, va_list 
 
                 case '%':
                 {
-                    destination->Pointer[length++] = '%';
+                    SpanAt(destination, length++) = '%';
                     break;
                 }
 
@@ -63,7 +89,7 @@ void StringFormatVargs(SpanChar* destination, ReadOnlySpanChar message, va_list 
                     
                     while (*stringArgument) 
                     {
-                        destination->Pointer[length++] = *stringArgument;
+                        SpanAt(destination, length++) = *stringArgument;
                         stringArgument++;
                     }
                     break;
@@ -77,7 +103,7 @@ void StringFormatVargs(SpanChar* destination, ReadOnlySpanChar message, va_list 
 
                     if (decimalArgument < 0) 
                     {
-                        destination->Pointer[length++] = '-';
+                        SpanAt(destination, length++) = '-';
                         magnitude = -magnitude;
                     }
 
@@ -90,7 +116,7 @@ void StringFormatVargs(SpanChar* destination, ReadOnlySpanChar message, va_list 
 
                     while (divisor > 0) 
                     {
-                        destination->Pointer[length++] = '0' + magnitude / divisor;
+                        SpanAt(destination, length++) = '0' + magnitude / divisor;
 
                         magnitude %= divisor;
                         divisor /= 10;
@@ -107,7 +133,7 @@ void StringFormatVargs(SpanChar* destination, ReadOnlySpanChar message, va_list 
 
                     if (decimalArgument < 0) 
                     {
-                        destination->Pointer[length++] = '-';
+                        SpanAt(destination, length++) = '-';
                         magnitude = -magnitude;
                     }
 
@@ -120,7 +146,7 @@ void StringFormatVargs(SpanChar* destination, ReadOnlySpanChar message, va_list 
 
                     while (divisor > 0) 
                     {
-                        destination->Pointer[length++] = '0' + magnitude / divisor;
+                        SpanAt(destination, length++) = '0' + magnitude / divisor;
 
                         magnitude %= divisor;
                         divisor /= 10;
@@ -131,13 +157,13 @@ void StringFormatVargs(SpanChar* destination, ReadOnlySpanChar message, va_list 
                 case 'x':
                 {
                     uintptr_t hexaArgument = va_arg(vargs, uintptr_t);
-                    destination->Pointer[length++] = '0';
-                    destination->Pointer[length++] = 'x';
+                    SpanAt(destination, length++) = '0';
+                    SpanAt(destination, length++) = 'x';
 
                     for (int32_t i = (sizeof(uintptr_t) * 2) - 1; i >= 0; i--) 
                     {
                         unsigned nibble = (hexaArgument >> (i * 4)) & 0xf;
-                        destination->Pointer[length++] = "0123456789abcdef"[nibble];
+                        SpanAt(destination, length++) = "0123456789abcdef"[nibble];
                     }
                     break;
                 }
@@ -145,13 +171,14 @@ void StringFormatVargs(SpanChar* destination, ReadOnlySpanChar message, va_list 
         }
         else 
         {
-            destination->Pointer[length++] = *messagePointer;
+            SpanAt(destination, length++) = *messagePointer;
         }
 
         messagePointer++;
     }
 
-    destination->Length = length;
-    destination->Pointer[length] = '\0';
-}
+    destination.Length = length;
+    SpanAt(destination, length) = '\0';
 
+    return ToReadOnlySpan(char, destination);
+}

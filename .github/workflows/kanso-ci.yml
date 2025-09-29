@@ -1,5 +1,8 @@
 name: Kanso-CI
 on:
+  push:
+    branches:
+      - main
   pull_request:
   workflow_dispatch: 
 

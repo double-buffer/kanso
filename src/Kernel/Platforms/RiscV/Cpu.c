@@ -1,6 +1,6 @@
 #include "Memory.h"
 #include "Types.h"
-#include "../../KernelConsole.h"
+#include "Console.h"
 #include "../../Platform.h"
 
 #define RISCV_INTERRUPT_SOFTWARE 1
@@ -251,34 +251,34 @@ inline void CpuWaitForInterrupt()
     __asm__ __volatile__("wfi" ::: "memory");
 }
 
-void LogRegister(ReadOnlySpanChar name, uintptr_t value, uint8_t padding, bool insertTab)
+static void LogRegister(ReadOnlySpanChar name, uintptr_t value, uint8_t padding, bool insertTab)
 {
-    KernelConsoleSetForegroundColor(KernelConsoleColorKeyword);
-    KernelConsolePrint(String("%s"), name);
-    KernelConsoleResetStyle();
+    ConsoleSetForegroundColor(ConsoleColorKeyword);
+    ConsolePrint(String("%s"), name);
+    ConsoleResetStyle();
 
-    KernelConsolePrint(String(":"));
+    ConsolePrint(String(":"));
 
     for (uint32_t i = 0; i < padding; i++)
     {
-        KernelConsolePrint(String(" "));
+        ConsolePrint(String(" "));
     }
 
-    KernelConsoleSetForegroundColor(KernelConsoleColorNumeric);
-    KernelConsolePrint(String("%x"), value);
-    KernelConsoleResetStyle();
+    ConsoleSetForegroundColor(ConsoleColorNumeric);
+    ConsolePrint(String("%x"), value);
+    ConsoleResetStyle();
 
     if (insertTab)
     {
-        KernelConsolePrint(String("    "));
+        ConsolePrint(String("    "));
     }
     else
     {
-        KernelConsolePrint(String("\n"));
+        ConsolePrint(String("\n"));
     }
 }
 
-void LogGeneralPurposeRegisters(const GeneralPurposeRegisters* generalPurposeRegisters)
+static void LogGeneralPurposeRegisters(const GeneralPurposeRegisters* generalPurposeRegisters)
 {
     LogRegister(String("ra"), generalPurposeRegisters->RA, 2, true);
     LogRegister(String("sp"), generalPurposeRegisters->SP, 2, true);
@@ -323,7 +323,7 @@ void LogGeneralPurposeRegisters(const GeneralPurposeRegisters* generalPurposeReg
     LogRegister(String("t6"), generalPurposeRegisters->T6, 2, false);
 }
 
-void LogSupervisorRegisters(const SupervisorRegisters* supervisorRegisters)
+static void LogSupervisorRegisters(const SupervisorRegisters* supervisorRegisters)
 {
     LogRegister(String("sepc"), supervisorRegisters->Epc, 3, true);
     LogRegister(String("sstatus"), supervisorRegisters->Status, 1, true);
@@ -335,18 +335,18 @@ void LogSupervisorRegisters(const SupervisorRegisters* supervisorRegisters)
 
 void CpuLogTrapFrame(const CpuTrapFrame* trapFrame)
 {
-    KernelConsoleSetForegroundColor(KernelConsoleColorInfo);
-    KernelConsolePrintBoxMessage(String("Trap Frame"));
-    KernelConsoleResetStyle();
+    ConsoleSetForegroundColor(ConsoleColorInfo);
+    ConsolePrintBoxMessage(String("Trap Frame"));
+    ConsoleResetStyle();
 
-    KernelConsoleSetForegroundColor(KernelConsoleColorHighlight);
-    KernelConsolePrint(String("General Purpose Registers:\n"));
-    KernelConsoleResetStyle();
+    ConsoleSetForegroundColor(ConsoleColorHighlight);
+    ConsolePrint(String("General Purpose Registers:\n"));
+    ConsoleResetStyle();
     LogGeneralPurposeRegisters(&trapFrame->GeneralPurposeRegisters);
 
-    KernelConsoleSetForegroundColor(KernelConsoleColorHighlight);
-    KernelConsolePrint(String("\nSupervisor Registers:\n"));
-    KernelConsoleResetStyle();
+    ConsoleSetForegroundColor(ConsoleColorHighlight);
+    ConsolePrint(String("\nSupervisor Registers:\n"));
+    ConsoleResetStyle();
     LogSupervisorRegisters(&trapFrame->SupervisorRegisters);
 }
 

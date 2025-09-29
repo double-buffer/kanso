@@ -11,13 +11,14 @@ boot:
     # Clear .bss
     la    t0, __BSS
     la    t1, __BSS_END
-    beq   t0, t1, .Lenter_kernel_main
+    beq   t0, t1, .Linit_parameters
 
 .Lclear_bss_loop:
     sb    zero, (t0)
     addi  t0, t0, 1
     blt   t0, t1, .Lclear_bss_loop
 
+.Linit_parameters:
     # Save boot parameters
     la    t0, globalBootHartId
     save_pointer a0, (t0)
@@ -28,7 +29,7 @@ boot:
     # Run init array 
     la    t2, __INIT_ARRAY_START
     la    t3, __INIT_ARRAY_END
-    beq   t2, t3, .Lenter_kernel_main
+    beq   t2, t3, .Lenter_kernel_init
 
 .Lrun_init_array_loop:
     load_pointer  t4, (t2)
@@ -36,6 +37,9 @@ boot:
     addi  t2, t2, PTR_SIZE
     blt   t2, t3, .Lrun_init_array_loop
 
-.Lenter_kernel_main:
-    call  KernelMain
-    j     .
+.Lenter_kernel_init:
+    call  KernelInit
+
+# TODO: Setup real stack
+    # Run KernelMain
+    tail KernelMain

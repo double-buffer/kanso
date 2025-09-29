@@ -19,3 +19,7 @@ endif()
 set(CMAKE_C_FLAGS "${_COMMON} -march=${_MARCH} -mabi=${_MABI} ${_MODEL}")
 set(CMAKE_ASM_FLAGS "--target=${COMPILE_TARGET} -march=${_MARCH} -mabi=${_MABI} -Wno-unused-command-line-argument -x assembler-with-cpp")
 
+set(CMAKE_EXE_LINKER_FLAGS_INIT     "-fuse-ld=lld")
+set(CMAKE_SHARED_LINKER_FLAGS_INIT  "-fuse-ld=lld")
+set(CMAKE_MODULE_LINKER_FLAGS_INIT  "-fuse-ld=lld")
+set(CMAKE_C_LINK_FLAGS_INIT         "-fuse-ld=lld")

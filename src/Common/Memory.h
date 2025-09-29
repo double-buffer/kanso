@@ -2,61 +2,125 @@
 
 #include "Types.h"
 
-#define MemoryAlignUp(value, align) __builtin_align_up(value, align)
-#define MemoryIsAligned(value, align) __builtin_is_aligned(value, align)
-#define MemoryOffsetOf(type, member) __builtin_offsetof(type, member)
+//---------------------------------------------------------------------------------------
+// Error Handling
+//---------------------------------------------------------------------------------------
 
+typedef enum 
+{
+    MemoryError_None,
+    MemoryError_InvalidParameter,
+    MemoryError_OutOfMemory
+} MemoryError;
 
-#define DefineSpan(name, type) \
-    typedef struct Span##name { type* Pointer; size_t Length; } Span##name; \
-    typedef struct ReadOnlySpan##name { const type* Pointer; size_t Length; } ReadOnlySpan##name; \
-    \
-    static inline Span##name CreateSpan##name(type* pointer, size_t length) \
-    { \
-        return (Span##name) { .Pointer = pointer, .Length = length }; \
-    } \
-    \
-    static inline ReadOnlySpan##name CreateReadOnlySpan##name(const type* pointer, size_t length) \
-    { \
-        return (ReadOnlySpan##name) { .Pointer = pointer, .Length = length }; \
-    } \
-    \
-    static inline ReadOnlySpan##name ToReadOnlySpan##name(Span##name span) \
-    { \
-        return (ReadOnlySpan##name) { .Pointer = span.Pointer, .Length = span.Length }; \
-    }
+// TODO: This will need to be thread local
+extern MemoryError globalMemoryError;
 
-#define DefineSpanStackAlloc(name, type, length) \
-    (__extension__ ({ \
-        static_assert((length) >= 0, "StackAlloc: length must be an integer-constant expression"); \
-        type array[(length)]; \
-        CreateSpan##name(array, (size_t)(length)); \
-    }))
+static inline MemoryError MemoryGetLastError()
+{
+    return globalMemoryError;
+}
 
-DefineSpan(Char, char)
-#define StackAllocChar(length) DefineSpanStackAlloc(Char, char, (length))
+//---------------------------------------------------------------------------------------
+// Utilities
+//---------------------------------------------------------------------------------------
 
-DefineSpan(Uint8, uint8_t)
-#define StackAllocUint8(length) DefineSpanStackAlloc(Uint8, uint8_t, (length))
+#define KiloBytesToBytes(value) (value) * 1024
+#define MegaBytesToBytes(value) KiloBytesToBytes((value)) * 1024
+#define GigaBytesToBytes(value) MegaBytesToBytes((value)) * 1024
 
-DefineSpan(Uint32, uint32_t)
-#define StackAllocUint32(length) DefineSpanStackAlloc(Uint32, uint32_t, (length))
+//---------------------------------------------------------------------------------------
+// Memory Allocation
+//---------------------------------------------------------------------------------------
 
-DefineSpan(Uint64, uint64_t)
-#define StackAllocUint64(length) DefineSpanStackAlloc(Uint64, uint64_t, (length))
+typedef enum
+{
+    MemoryAccess_Read,
+    MemoryAccess_ReadWrite,
+    MemoryAccess_Execute,
+    MemoryAccess_ExecuteRead,
+    MemoryAccess_ExecuteReadWrite
+} MemoryAccess;
 
-#define SpanSlice(span, offset, length) \
-( \
-    (typeof(span)) \
-    { \
-        .Pointer = (span).Pointer + (offset), \
-        .Length  = (length) \
-    } \
-)
+typedef struct
+{
+    void* BaseAddress;
+    size_t PageCount;
+} MemoryReservation;
 
-#define SpanSliceFrom(span, offset) SpanSlice((span), (offset), (span).Length - (offset))
+typedef struct 
+{
+    size_t CommittedPages;
+    size_t ReservedPages;
+} MemoryAllocationInfos;
 
-// TODO: SpanGetItem?
+#define MEMORY_RESERVATION_EMPTY ((MemoryReservation) { .BaseAddress = nullptr, .PageCount = 0 })
+
+static inline bool MemoryReservationIsEmpty(MemoryReservation memoryReservation)
+{
+    return memoryReservation.BaseAddress == nullptr;
+}
+
+MemoryAllocationInfos MemoryGetAllocationInfos();
+
+MemoryReservation MemoryReservePages(size_t pageCount);
+bool MemoryRelease(MemoryReservation* memoryReservation);
+
+bool MemoryCommitPages(const MemoryReservation* memoryReservation, size_t pageOffset, size_t pageCount, MemoryAccess access);
+bool MemoryDecommitPages(const MemoryReservation* memoryReservation, size_t pageOffset, size_t pageCount);
+
+//---------------------------------------------------------------------------------------
+// Memory Arena
+//---------------------------------------------------------------------------------------
+
+struct MemoryArenaStorage;
+
+typedef struct
+{
+    struct MemoryArenaStorage* Storage;
+    uint8_t* StackStartPointer;
+    uint8_t* StackExtraStartPointer;
+    uint8_t StackLevel;
+} MemoryArena;
+
+typedef struct 
+{
+    size_t AllocatedBytes;
+    size_t CommittedBytes;
+    size_t MaximumSizeInBytes;
+} MemoryArenaAllocationInfos;
+
+#define MEMORY_ARENA_EMPTY ((MemoryArena) { .Storage = nullptr });
+
+static inline bool MemoryArenaIsEmpty(MemoryArena memoryArena)
+{
+    return memoryArena.Storage == nullptr;
+}
+
+MemoryArena CreateMemoryArena(size_t sizeInBytes);
+bool MemoryArenaRelease(MemoryArena* memoryArena);
+
+MemoryArenaAllocationInfos MemoryArenaGetAllocationInfos(MemoryArena memoryArena);
+
+SpanUint8 MemoryArenaPush(MemoryArena memoryArena, size_t sizeInBytes);
+SpanUint8 MemoryArenaPushReserved(MemoryArena memoryArena, size_t sizeInBytes);
+
+#define MemoryArenaPushStruct(type, memoryArena) ((type*)MemoryArenaPush((memoryArena), sizeof(type)).Pointer)
+#define MemoryArenaPushArray(type, memoryArena, count) CreateSpan(type, ((type*)MemoryArenaPush((memoryArena), sizeof(type) * (count)).Pointer), (count))
+
+bool MemoryArenaPop(MemoryArena memoryArena, size_t sizeInBytes);
+void MemoryArenaClear(MemoryArena memoryArena);
+
+bool MemoryArenaCommit(MemoryArena memoryArena, SpanUint8 range);
+
+MemoryArena GetStackMemoryArena();
+void ReleaseStackMemoryArena(MemoryArena* stackMemoryArena);
+
+#define StackMemoryArena(name) [[gnu::cleanup(ReleaseStackMemoryArena)]] MemoryArena name = GetStackMemoryArena();
+
+//---------------------------------------------------------------------------------------
+// General
+//---------------------------------------------------------------------------------------
 
 void MemorySetByte(size_t stride, void* destination, size_t destinationLength, const void* value);
 void MemorySetDefault(size_t stride, void* destination, size_t destinationLength, const void* value);
@@ -69,33 +133,32 @@ void MemorySetDefault(size_t stride, void* destination, size_t destinationLength
     )(sizeof(*(destination).Pointer), (destination).Pointer, (destination).Length, &(typeof(*(destination).Pointer)){ (value) })
 
 
+// TODO: Add Errors
+
 void MemoryCopyByte(size_t stride, void* destination, size_t destinationLength, const void* source, size_t sourceLength);
 void MemoryCopyDefault(size_t stride, void* destination, size_t destinationLength, const void* source, size_t sourceLength);
 
-#define _MemoryCopyDispatch(destination, source) \
+#define MemoryCopy(destination, source) \
     _Generic((destination).Pointer, \
         char*: MemoryCopyByte, \
         uint8_t*: MemoryCopyByte, \
         default: MemoryCopyDefault \
     )(sizeof(*(destination).Pointer), (destination).Pointer, (destination).Length, (source).Pointer, (source).Length)
 
+void* MemoryConcatChar(MemoryArena memoryArena, size_t stride, const void* source1, size_t source1Length, const void* source2, size_t source2Length);
+void* MemoryConcatByte(MemoryArena memoryArena, size_t stride, const void* source1, size_t source1Length, const void* source2, size_t source2Length);
+void* MemoryConcatDefault(MemoryArena memoryArena, size_t stride, const void* source1, size_t source1Length, const void* source2, size_t source2Length);
 
-#define _IS_READONLY_SPAN(span)                                            \
-        __builtin_types_compatible_p(                                      \
-                __typeof__((span).Pointer),                                \
-                const __typeof__(*(span).Pointer) *)
-
-#define _ASSERT_READONLY_SPAN(src)                                         \
-        _Static_assert( _IS_READONLY_SPAN(src),                            \
-                        "MemoryCopy: source span must be read-only")
-
-#define MemoryCopy(destination, source)                                           \
-    do {                                                                          \
-        _ASSERT_READONLY_SPAN(source);         \
-        _MemoryCopyDispatch((destination), (source));                             \
-    } while (0)
-
-
-
-// TODO: Move that to the standard library
-void memset(uint8_t* destination, uint8_t value, size_t sizeInBytes); 
+// TODO: It works but the only drawback now is that if source1 is a ReadOnlySpan, it will create a ReadOnlySpan as a result
+#define MemoryConcat(memoryArena, source1, source2) \
+        (typeof(source1)) \
+        { \
+            .Pointer = _Generic((source1).Pointer, \
+                    char*: MemoryConcatChar, \
+                    const char*: MemoryConcatChar, \
+                    uint8_t*: MemoryConcatByte, \
+                    const uint8_t*: MemoryConcatByte, \
+                    default: MemoryConcatDefault \
+                )(memoryArena, sizeof(*(source1).Pointer), (source1).Pointer, (source1).Length, (source2).Pointer, (source2).Length), \
+            .Length  = (source1).Length + (source2).Length \
+        };

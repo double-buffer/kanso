@@ -1,27 +1,82 @@
 #pragma once
 
-typedef unsigned char uint8_t;
-typedef unsigned short uint16_t;
-typedef unsigned int uint32_t;
-typedef unsigned long long uint64_t;
+//---------------------------------------------------------------------------------------
+// Primitive types
+//---------------------------------------------------------------------------------------
 
-typedef char int8_t;
-typedef short int16_t;
-typedef int int32_t;
-typedef long long int64_t;
+typedef __UINT8_TYPE__ uint8_t;
+typedef __UINT16_TYPE__ uint16_t;
+typedef __UINT32_TYPE__ uint32_t;
+typedef __UINT64_TYPE__ uint64_t;
+
+typedef __INT8_TYPE__ int8_t;
+typedef __INT16_TYPE__ int16_t;
+typedef __INT32_TYPE__ int32_t;
+typedef __INT64_TYPE__ int64_t;
 
 typedef __UINTPTR_TYPE__ uintptr_t;
 typedef __INTPTR_TYPE__ intptr_t; 
 typedef __SIZE_TYPE__ size_t;
 
-static_assert(sizeof(uint8_t) == 1, "uint8_t must be 1 byte.");
-static_assert(sizeof(uint16_t) == 2, "uint16_t must be 2 bytes.");
-static_assert(sizeof(uint32_t) == 4,  "uint32_t must be 4 bytes.");
-static_assert(sizeof(uint64_t) == 8,  "uint64_t must be 8 bytes.");
-
-static_assert(sizeof(uintptr_t) == sizeof(void *), "uintptr_t is not pointer-sized.");
-
 #define PLATFORM_ARCHITECTURE_BITS (__SIZEOF_POINTER__ * 8)
+#define BITS_PER_BYTE 8u
+#define BITS_PER_SIZE_TYPE (sizeof(size_t) * BITS_PER_BYTE)
+#define MASK_SIZE_TYPE (BITS_PER_SIZE_TYPE - 1)
+
+#define UINT8_MAX __UINT8_MAX__
+#define UINT16_MAX __UINT16_MAX__
+#define UINT32_MAX __UINT32_MAX__
+#define UINT64_MAX __UINT64_MAX__
+
+#define INT8_MAX __INT8_MAX__
+#define INT16_MAX __INT16_MAX__
+#define INT32_MAX __INT32_MAX__
+#define INT64_MAX __INT64_MAX__
+
+#define SIZE_MAX __SIZE_MAX__
+
+#define AlignUp(value, align) __builtin_align_up(value, align)
+#define IsAligned(value, align) __builtin_is_aligned(value, align)
+#define OffsetOf(type, member) __builtin_offsetof(type, member)
+#define DivRoundUp(value, divisor) (((value) + (divisor) - 1) / (divisor))
+
+#if __SIZEOF_SIZE_T__ == 8
+    #define SizePrefixCountZeros(value) __builtin_ctzll((uint64_t)(value))
+#elif __SIZEOF_SIZE_T__ == 4
+    #define SizePrefixCountZeros(value) __builtin_ctz((uint32_t)(value))
+#endif
+
+//---------------------------------------------------------------------------------------
+// Variable parameters
+//---------------------------------------------------------------------------------------
+
+#define va_list __builtin_va_list
+#define va_start __builtin_va_start
+#define va_end __builtin_va_end
+#define va_arg __builtin_va_arg
+
+//---------------------------------------------------------------------------------------
+// Error Handling
+//---------------------------------------------------------------------------------------
+
+typedef enum 
+{
+    TypeError_None,
+    TypeError_InvalidParameter,
+    TypeError_NotFound
+} TypeError;
+
+// TODO: This will need to be thread local
+extern TypeError globalTypeError;
+
+static inline TypeError TypeGetLastError()
+{
+    return globalTypeError;
+}
+
+//---------------------------------------------------------------------------------------
+// Endianness conversion
+//---------------------------------------------------------------------------------------
 
 typedef enum
 {
@@ -31,10 +86,141 @@ typedef enum
 
 #define PLATFORM_BYTE_ORDER __BYTE_ORDER__
 
-#define va_list  __builtin_va_list
-#define va_start __builtin_va_start
-#define va_end   __builtin_va_end
-#define va_arg   __builtin_va_arg
+// TODO: Read functions for endian
+
+//---------------------------------------------------------------------------------------
+// Span
+//---------------------------------------------------------------------------------------
+
+#define DefineSpan(name, type) \
+    typedef struct Span##name { type* Pointer; size_t Length; } Span##name; \
+    typedef struct ReadOnlySpan##name { const type* Pointer; size_t Length; } ReadOnlySpan##name; \
+    \
+    static inline Span##name _CREATE_SPAN_##type(type* pointer, size_t length) \
+    { \
+        return (Span##name) { .Pointer = pointer, .Length = length }; \
+    } \
+    \
+    static inline ReadOnlySpan##name _CREATE_READONLY_SPAN_##type(const type* pointer, size_t length) \
+    { \
+        return (ReadOnlySpan##name) { .Pointer = pointer, .Length = length }; \
+    } \
+
+#define CreateSpan(type, pointer, length) _CREATE_SPAN_##type(pointer, length)
+#define CreateReadOnlySpan(type, pointer, length) _CREATE_READONLY_SPAN_##type(pointer, length)
+
+// TODO: It would be nice if we could ommit the type for this function because we know it already
+#define ToReadOnlySpan(type, span) _CREATE_READONLY_SPAN_##type((span).Pointer, (span).Length)
+
+#define SpanCast(type, span) CreateSpan(type, (type*)(span).Pointer, (sizeof(*(span).Pointer) * (span).Length) / sizeof(type))
+
+#define StackAlloc(type, length) CreateSpan(type, (type*)__builtin_alloca(sizeof(type) * length), length);
+
+#define SpanSlice(span, offset, length) \
+( \
+    (typeof(span)) \
+    { \
+        .Pointer = (span).Pointer + (offset), \
+        .Length  = (length) \
+    } \
+)
+
+#define SpanSliceFrom(span, offset) SpanSlice((span), (offset), (span).Length - (offset))
+#define SpanAt(span, index) (span).Pointer[(index)]
+
+DefineSpan(Char, char)
+DefineSpan(Uint8, uint8_t)
+DefineSpan(Uint32, uint32_t)
+DefineSpan(Uint64, uint64_t)
+DefineSpan(Size, size_t)
+
+//---------------------------------------------------------------------------------------
+// BitArray
+//---------------------------------------------------------------------------------------
+
+typedef struct
+{
+    SpanSize Data;
+    size_t BitCount;
+} BitArray;
+
+#define BIT_ARRAY_EMPTY ((BitArray){ .Data = { .Pointer = nullptr, .Length = 0 }, .BitCount = 0 })
+
+static inline bool BitArrayIsEmpty(BitArray bitArray)
+{
+    return bitArray.Data.Pointer == nullptr;
+}
+
+static inline BitArray CreateBitArray(SpanSize data)
+{
+    globalTypeError = TypeError_None;
+
+    return (BitArray)
+    {
+        .Data = data,
+        .BitCount = data.Length * BITS_PER_SIZE_TYPE
+    };
+}
+
+static inline BitArray CreateBitArrayWithBitCount(SpanSize data, size_t bitCount)
+{
+    globalTypeError = TypeError_None;
+
+    return (BitArray)
+    {
+        .Data = data,
+        .BitCount = bitCount
+    };
+}
+
+static inline bool BitArraySet(BitArray bitArray, size_t index)
+{
+    if (index >= bitArray.BitCount || BitArrayIsEmpty(bitArray)) 
+    {
+        globalTypeError = TypeError_InvalidParameter;
+        return false;
+    }
+
+    bitArray.Data.Pointer[index / BITS_PER_SIZE_TYPE] |= (size_t)1 << (index & MASK_SIZE_TYPE);
+
+    globalTypeError = TypeError_None;
+    return true;
+}
+
+static inline bool BitArrayReset(BitArray bitArray, size_t index)
+{
+    if (index >= bitArray.BitCount || BitArrayIsEmpty(bitArray)) 
+    {
+        globalTypeError = TypeError_InvalidParameter;
+        return false;
+    }
+
+    bitArray.Data.Pointer[index / BITS_PER_SIZE_TYPE] &= ~((size_t)1 << (index & MASK_SIZE_TYPE));
+
+    globalTypeError = TypeError_None;
+    return true;
+}
+
+static inline bool BitArrayIsSet(BitArray bitArray, size_t index)
+{
+    if (index >= bitArray.BitCount || BitArrayIsEmpty(bitArray)) 
+    {
+        globalTypeError = TypeError_InvalidParameter;
+        return false;
+    }
+
+    globalTypeError = TypeError_None;
+
+    auto pointer = bitArray.Data.Pointer;
+    return ((pointer[index / BITS_PER_SIZE_TYPE] >> (index & MASK_SIZE_TYPE)) & 1) == 1;
+}
+
+size_t BitArrayFindFirstNotSet(BitArray bitArray);
+size_t BitArrayFindRangeNotSet(BitArray bitArray, size_t length);
+
+//---------------------------------------------------------------------------------------
+// Standard types
+//---------------------------------------------------------------------------------------
 
 typedef struct
 {
