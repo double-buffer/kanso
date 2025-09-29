@@ -96,7 +96,7 @@ void KernelMain()
     BiosSetTimer(CpuReadTime() + 10'000'000);
 
     // TODO: Test Timer only when the hardware is running fine
-    CpuEnableInterrupts(CpuInterruptType_Timer);
+    //CpuEnableInterrupts(CpuInterruptType_Timer);
 
     while (true)
     {

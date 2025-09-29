@@ -71,6 +71,84 @@ Test(Types, SpanCast_WithSpanUint8ToUint32_HasCorrectValues)
     TestAssertEquals((uintptr_t)span.Pointer, (uintptr_t)result.Pointer);
 }
 
+Test(Types, ConvertBytesToUint32_WithBigEndianData_ReturnsCorrectResult)
+{
+    // Arrange
+    uint8_t testData[] = { 0x00, 0x00, 0xB2, 0x73 };
+
+    // Act
+    auto result = ConvertBytesToUint32(CreateReadOnlySpan(uint8_t, testData, 4), ByteOrder_BigEndian);
+
+    // Assert
+    TestAssertEquals(TypeError_None, TypeGetLastError());
+    TestAssertEquals(45683, result);
+}
+
+Test(Types, ConvertBytesToUint32_WithLittleEndianData_ReturnsCorrectResult)
+{
+    // Arrange
+    uint8_t testData[] = { 0x73, 0xB2, 0x00, 0x00 };
+
+    // Act
+    auto result = ConvertBytesToUint32(CreateReadOnlySpan(uint8_t, testData, 4), ByteOrder_LittleEndian);
+
+    // Assert
+    TestAssertEquals(TypeError_None, TypeGetLastError());
+    TestAssertEquals(45683, result);
+}
+
+Test(Types, ConvertBytesToUint32_WithWrongLength_HasErrorSet)
+{
+    // Arrange
+    uint8_t testData[] = { 0x73, 0xB2 };
+
+    // Act
+    auto result = ConvertBytesToUint32(CreateReadOnlySpan(uint8_t, testData, 2), ByteOrder_LittleEndian);
+
+    // Assert
+    TestAssertEquals(TypeError_InvalidParameter, TypeGetLastError());
+    TestAssertEquals(0, result);
+}
+
+Test(Types, ConvertBytesToUint64_WithBigEndianData_ReturnsCorrectResult)
+{
+    // Arrange
+    uint8_t testData[] = { 0x11, 0x22, 0x10, 0xF4, 0x7D, 0xE9, 0x81, 0x15 };
+
+    // Act
+    auto result = ConvertBytesToUint64(CreateReadOnlySpan(uint8_t, testData, 8), ByteOrder_BigEndian);
+
+    // Assert
+    TestAssertEquals(TypeError_None, TypeGetLastError());
+    TestAssertEquals(1234567890123456789ULL, result);
+}
+
+Test(Types, ConvertBytesToUint64_WithLittleEndianData_ReturnsCorrectResult)
+{
+    // Arrange
+    uint8_t testData[] = { 0x15, 0x81, 0xE9, 0x7D, 0xF4, 0x10, 0x22, 0x11 };;
+
+    // Act
+    auto result = ConvertBytesToUint64(CreateReadOnlySpan(uint8_t, testData, 8), ByteOrder_LittleEndian);
+
+    // Assert
+    TestAssertEquals(TypeError_None, TypeGetLastError());
+    TestAssertEquals(1234567890123456789ULL, result);
+}
+
+Test(Types, ConvertBytesToUint64_WithWrongLength_HasErrorSet)
+{
+    // Arrange
+    uint8_t testData[] = { 0x73, 0xB2 };
+
+    // Act
+    auto result = ConvertBytesToUint64(CreateReadOnlySpan(uint8_t, testData, 2), ByteOrder_LittleEndian);
+
+    // Assert
+    TestAssertEquals(TypeError_InvalidParameter, TypeGetLastError());
+    TestAssertEquals(0, result);
+}
+
 Test(Types, CreateBitArray_WithCorrectBitCount_ReturnsBitArray)
 {
     // Arrange

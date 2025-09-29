@@ -41,39 +41,6 @@ PlatformInformation PlatformGetInformation()
     return globalPlatformInformation;
 }
 
-// TODO: Put that in a common binary reader or similar and do tests
-// TODO: We should have a create binary reader that take the encoding and the pointer
-// TODO: It would be cool if it could work with streams but it seems too much
-// TODO: This function should take into account the endianness of the platform
-uint32_t ConvertBytesToUint32(ReadOnlySpanUint8 data, ByteOrder byteOrder)
-{
-    // TODO: Check length is at least 4
-    // TODO: For now big endian -> little endian conversion
-    auto result = *(uint32_t*)data.Pointer;
-
-    if (PLATFORM_BYTE_ORDER != byteOrder)
-    {
-        // TODO: Put that in Types.h
-        result = __builtin_bswap32(result);
-    }
-
-    return result;
-}
-
-uint64_t ConvertBytesToUint64(ReadOnlySpanUint8 data, ByteOrder byteOrder)
-{
-    // TODO: Check length is at least 4
-    // TODO: For now big endian -> little endian conversion
-    auto result = *(uint64_t*)data.Pointer;
-
-    if (PLATFORM_BYTE_ORDER != byteOrder)
-    {
-        // TODO: Put that in Types.h
-        result = __builtin_bswap64(result);
-    }
-
-    return result;
-}
 
 typedef struct
 {
@@ -197,9 +164,7 @@ PlatformDevices PlatformGetDevices()
     // TODO: Check magic
     // TODO: Verify version
 
-    // TODO: Parse reserved memory area?
-    
-    auto dataSpan = CreateReadOnlySpan(uint8_t, (const uint8_t*)globalDeviceTreeData, sizeInBytes);
+    auto dataSpan = CreateReadOnlySpan(uint8_t, (uint8_t*)globalDeviceTreeData, sizeInBytes);
     auto reader = CreateBinaryReader(dataSpan, ByteOrder_BigEndian);
     BinarySetOffset(&reader, sizeof(uint32_t) * 2);
 

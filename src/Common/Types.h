@@ -75,20 +75,6 @@ static inline TypeError TypeGetLastError()
 }
 
 //---------------------------------------------------------------------------------------
-// Endianness conversion
-//---------------------------------------------------------------------------------------
-
-typedef enum
-{
-    ByteOrder_LittleEndian = __ORDER_LITTLE_ENDIAN__,
-    ByteOrder_BigEndian = __ORDER_BIG_ENDIAN__ 
-} ByteOrder;
-
-#define PLATFORM_BYTE_ORDER __BYTE_ORDER__
-
-// TODO: Read functions for endian
-
-//---------------------------------------------------------------------------------------
 // Span
 //---------------------------------------------------------------------------------------
 
@@ -133,6 +119,21 @@ DefineSpan(Uint8, uint8_t)
 DefineSpan(Uint32, uint32_t)
 DefineSpan(Uint64, uint64_t)
 DefineSpan(Size, size_t)
+
+//---------------------------------------------------------------------------------------
+// Endianness conversion
+//---------------------------------------------------------------------------------------
+
+typedef enum
+{
+    ByteOrder_LittleEndian = __ORDER_LITTLE_ENDIAN__,
+    ByteOrder_BigEndian = __ORDER_BIG_ENDIAN__ 
+} ByteOrder;
+
+#define PLATFORM_BYTE_ORDER __BYTE_ORDER__
+
+uint32_t ConvertBytesToUint32(ReadOnlySpanUint8 data, ByteOrder byteOrder);
+uint64_t ConvertBytesToUint64(ReadOnlySpanUint8 data, ByteOrder byteOrder);
 
 //---------------------------------------------------------------------------------------
 // BitArray

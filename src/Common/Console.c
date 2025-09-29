@@ -1,7 +1,13 @@
+#include "Memory.h"
 #include "Console.h"
 
-void FormatBoxedMessage(SpanChar destination, ReadOnlySpanChar message)
+ReadOnlySpanChar FormatBoxedMessage(MemoryArena memoryArena, ReadOnlySpanChar message)
 {
+    auto result = MemoryArenaPushArray(char, memoryArena, 1024);
+    MemorySet(result, 0);
+
+    auto destination = result;
+
     auto upLeftCorner = String("┌");
     auto upRightCorner = String("┐");
     auto downLeftCorner = String("└");
@@ -55,6 +61,8 @@ void FormatBoxedMessage(SpanChar destination, ReadOnlySpanChar message)
     destination = SpanSliceFrom(destination, downRightCorner.Length);
 
     // TODO: There is a problem here with null terminator not present
+
+    return ToReadOnlySpan(char, result);
 }
 
 void ConsoleSetForegroundColor(Color color)
@@ -70,8 +78,8 @@ void ConsoleResetStyle()
 
 void ConsolePrintBoxMessage(ReadOnlySpanChar message)
 {
-    // TODO: Use the stack memory arena here 
-    auto boxedMessage = StackAlloc(char, 512);
-    FormatBoxedMessage(boxedMessage, message);
+    StackMemoryArena(stackMemoryArena);
+
+    auto boxedMessage = FormatBoxedMessage(stackMemoryArena, message);
     ConsolePrint(String("\n%s\n"), boxedMessage);
 }

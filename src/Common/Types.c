@@ -3,6 +3,43 @@
 // TODO: This will need to be thread local
 TypeError globalTypeError = TypeError_None;
 
+uint32_t ConvertBytesToUint32(ReadOnlySpanUint8 data, ByteOrder byteOrder)
+{
+    if (data.Length < sizeof(uint32_t))
+    {
+        globalTypeError = TypeError_InvalidParameter;
+        return 0;
+    }
+
+    auto result = *(uint32_t*)data.Pointer;
+
+    if (PLATFORM_BYTE_ORDER != byteOrder)
+    {
+        result = __builtin_bswap32(result);
+    }
+
+    globalTypeError = TypeError_None;
+    return result;
+}
+
+uint64_t ConvertBytesToUint64(ReadOnlySpanUint8 data, ByteOrder byteOrder)
+{
+    if (data.Length < sizeof(uint64_t))
+    {
+        globalTypeError = TypeError_InvalidParameter;
+        return 0;
+    }
+
+    auto result = *(uint64_t*)data.Pointer;
+
+    if (PLATFORM_BYTE_ORDER != byteOrder)
+    {
+        result = __builtin_bswap64(result);
+    }
+
+    return result;
+}
+
 size_t BitArrayFindFirstNotSet(BitArray bitArray)
 {
     if (BitArrayIsEmpty(bitArray)) 
