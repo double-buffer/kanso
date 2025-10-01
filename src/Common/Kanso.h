@@ -6,7 +6,7 @@
 #include "String.h"
 #include "Console.h"
 #include "System.h"
-
+#include "BinaryReader.h"
 
 #ifdef BUILD_TESTS
 #include "Test.h"
