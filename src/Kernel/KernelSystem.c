@@ -1,6 +1,5 @@
+#include "Kanso.h"
 #include "Platform.h"
-#include "System.h"
-
 
 SystemInformation SystemGetInformation()
 {

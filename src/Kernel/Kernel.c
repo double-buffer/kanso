@@ -1,6 +1,4 @@
 #include "Kernel.h"
-#include "Console.h"
-#include "Memory.h"
 #include "Platform.h"
 
 void KernelFailureCore(ReadOnlySpanChar file, uint32_t line, ReadOnlySpanChar message, ...)

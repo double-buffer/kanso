@@ -1,7 +1,5 @@
-#include "Console.h"
-#include "Memory.h"
+#include "Kanso.h"
 #include "Platform.h"
-#include "Types.h"
 
 typedef struct
 {

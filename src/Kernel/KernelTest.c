@@ -1,10 +1,6 @@
-#include "Memory.h"
-#include "Test.h"
-#include "String.h"
-#include "Console.h"
+#include "Kanso.h"
 #include "Kernel.h"
 #include "Platform.h"
-#include "Version.h"
 
 void KernelTrapHandler(CpuTrapFrame* trapFrame)
 {

@@ -1,8 +1,4 @@
-#include "Types.h"
-#include "String.h"
-#include "Memory.h"
-#include "Console.h"
-#include "Version.h"
+#include "Kanso.h"
 #include "Platform.h"
 #include "Kernel.h"
 

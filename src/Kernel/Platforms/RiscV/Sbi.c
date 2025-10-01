@@ -1,4 +1,3 @@
-#include "Types.h"
 #include "../../Platform.h"
 
 // Doc on SBI is available here: https://github.com/riscv-non-isa/riscv-sbi-doc/tree/master

@@ -1,6 +1,4 @@
-#include "Console.h"
-#include "Memory.h"
-#include "String.h"
+#include "Kanso.h"
 #include "Platform.h"
 
 void ConsolePrint(ReadOnlySpanChar message, ...)

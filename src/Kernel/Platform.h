@@ -1,8 +1,6 @@
 #pragma once
 
-#include "Memory.h"
-#include "System.h"
-#include "Types.h"
+#include "Kanso.h"
 
 // --------------------------------------------------------------------------------------
 // General
