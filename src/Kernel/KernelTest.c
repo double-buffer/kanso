@@ -97,7 +97,7 @@ void KernelInit()
     ConsolePrint(String("(%s %d-bit)\n\n"), platformInformation.SystemInformation.Name.Pointer, platformInformation.SystemInformation.ArchitectureBits);
     ConsoleResetStyle();
 
-    TestRun(KernelTestHandler, String("Types|Memory"));
+    TestRun(KernelTestHandler, String("Types|Memory|BinaryReader"));
 
     // TODO: Init the MMU
 

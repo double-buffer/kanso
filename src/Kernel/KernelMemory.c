@@ -113,6 +113,9 @@ bool KernelInitModeMemoryReleasePages(MemoryReservation* memoryReservation)
 
 MemoryReservation KernelMemoryReservePages(size_t pageCount)
 {
+    // TODO: Silent the warning for now
+    (void)pageCount;
+
     // TODO: 
 
     return (MemoryReservation)
@@ -165,6 +168,9 @@ bool MemoryRelease(MemoryReservation* memoryReservation)
 
 bool MemoryCommitPages(const MemoryReservation* memoryReservation, size_t pageOffset, size_t pageCount, MemoryAccess access)
 {
+    // TODO: Silent the warning for now
+    (void)access;
+
     if (!CheckMemoryReservationRange(memoryReservation, pageOffset, pageCount))
     {
         return false;

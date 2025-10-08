@@ -16,6 +16,11 @@ void BinarySetOffset(BinaryReader* reader, size_t offset)
     reader->CurrentOffset = offset;
 }
 
+uint8_t BinaryReadUint8(BinaryReader* reader)
+{
+    return 0;
+}
+
 uint32_t BinaryReadUint32(BinaryReader* reader)
 {
     auto span = SpanSliceFrom(reader->Data, reader->CurrentOffset);

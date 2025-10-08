@@ -3,4 +3,5 @@
 #include "MemoryAllocationTests.c"
 #include "MemoryArenaTests.c"
 #include "StringTests.c"
+#include "BinaryReaderTests.c"
 

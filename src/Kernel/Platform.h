@@ -9,6 +9,7 @@
 // TODO: We should maybe put that in common and call it SystemDevice or SystemStaticDevice
 typedef struct
 {
+    uint32_t Reserved;
 } PlatformDevices;
 
 typedef struct
